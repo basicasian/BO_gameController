@@ -1,5 +1,6 @@
 import pygame
 import sys
+import time
 import numpy as np
 
 pygame.init()
@@ -7,7 +8,7 @@ pygame.init()
 WIDTH = 800
 HEIGHT = 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Jump Test")
+pygame.display.set_caption("Test Gizmo")
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -19,7 +20,7 @@ LINE_X = WIDTH // 2
 BALL_RADIUS = 10
 TARGET_HEIGHT = 200
 TARGET_SIZE = 100
-GRAVITY = 0.5
+GRAVITY = 0.4
 JUMP_SPEED = -5
 
 class Ball:
@@ -34,8 +35,8 @@ class Ball:
     def update(self):
         self.velocity += GRAVITY
         self.y += self.velocity
-        
-        # 防止小球落到地面以下
+
+
         if self.y > HEIGHT - BALL_RADIUS:
             self.y = HEIGHT - BALL_RADIUS
             self.velocity = 0
@@ -46,13 +47,17 @@ class Ball:
 def main():
     clock = pygame.time.Clock()
     ball = Ball()
-
+    
     target_center = HEIGHT - TARGET_HEIGHT
     target_top = target_center - TARGET_SIZE // 2
     target_bottom = target_center + TARGET_SIZE // 2
     
     running = True
+    last_sample_time = time.time()  # 添加采样时间记录
+    
     while running:
+        current_time = time.time()
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -62,8 +67,12 @@ def main():
 
         ball.update()
 
-        distance = abs(ball.y - target_center)
-        print(f"Distance to target center: {distance:.2f}")
+        # 每50ms进行一次采样
+        if current_time - last_sample_time >= 0.05:
+            distance = abs(ball.y - target_center)
+            if hasattr(main, 'distance_queue'):
+                main.distance_queue.put(distance)
+            last_sample_time = current_time
 
         screen.fill(WHITE)
 
