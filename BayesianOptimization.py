@@ -5,14 +5,7 @@ from scipy.stats import norm
 
 class BayesianOptimizer:
     def __init__(self, bounds, kernel=None, random_state=42):
-        """
-        初始化贝叶斯优化器
-        
-        Args:
-            bounds: 参数空间边界，形如 [(x1_min, x1_max), (x2_min, x2_max), ...]
-            kernel: GP的核函数，默认使用Matérn核
-            random_state: 随机种子
-        """
+
         self.bounds = np.array(bounds)
         self.dim = len(bounds)
 
