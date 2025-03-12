@@ -20,8 +20,8 @@ LINE_X = WIDTH // 2
 BALL_RADIUS = 10
 TARGET_HEIGHT = 200
 TARGET_SIZE = 100
-GRAVITY = 0.4
-JUMP_SPEED = -5
+GRAVITY = 0.1
+JUMP_SPEED = -1
 
 class Ball:
     def __init__(self):
@@ -45,7 +45,6 @@ class Ball:
         pygame.draw.circle(screen, RED, (int(self.x), int(self.y)), BALL_RADIUS)
 
 def main():
-    # 确保每次运行时重新初始化pygame
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Test Gizmo")

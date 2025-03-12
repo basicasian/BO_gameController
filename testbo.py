@@ -18,11 +18,11 @@ class TestEnvironment:
 
     def collect_samples(self):
         self.distances = []
-        while len(self.distances) < 50 and self.running:
+        while len(self.distances) < 100 and self.running:
             try:
                 distance = self.distance_queue.get(timeout=0.1)
                 self.distances.append(distance)
-                print(f"采样进度: {len(self.distances)}/50", end='\r')
+                print(f"采样进度: {len(self.distances)}/100", end='\r')
             except queue.Empty:
                 continue
         self.running = False
@@ -81,7 +81,7 @@ def main():
         optimizer.update([[gravity, jump_speed]], [perf])
         print(f"Sample {i + 1} done")
 
-    n_iterations = 10
+    n_iterations = 15
     best_params = None
     best_perf = -np.inf
 
