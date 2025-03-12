@@ -6,6 +6,7 @@ from preprocess import f_perf, error_calc, accuracy, res_speed
 import testgizmo
 import threading
 import queue
+import matplotlib.pyplot as plt
 
 
 class TestEnvironment:
@@ -22,7 +23,6 @@ class TestEnvironment:
             try:
                 distance = self.distance_queue.get(timeout=0.1)
                 self.distances.append(distance)
-                print(f"采样进度: {len(self.distances)}/100", end='\r')
             except queue.Empty:
                 continue
         self.running = False
@@ -47,11 +47,12 @@ class TestEnvironment:
         self.sample_thread.join()
 
         error = error_calc(self.distances)
-        moving_time = time.time() - start_time
+        moving_time = testgizmo.first_target_entry_time if testgizmo.first_target_entry_time is not None else time.time() - start_time
 
         acc_val = accuracy(error, 1.0)
         speed_val = res_speed(moving_time)
-        perf = f_perf(acc_val, speed_val)
+        print(f"Accuracy={acc_val:.3f}\nerror={error:.3f}\nspeed={speed_val:.3f}")
+        perf = f_perf(acc_val, speed_val, w1=0.8)
         return perf, error, moving_time
 
 
@@ -70,6 +71,11 @@ def main():
     ]
 
     optimizer = BayesianOptimizer(bounds)
+    
+    # 用于记录性能数据
+    iterations = []
+    performances = []
+    iteration_count = 0
 
     n_initial = 5
     print("\n=== Initial Sampling ===")
@@ -80,6 +86,11 @@ def main():
         perf = objective_function([gravity, jump_speed])
         optimizer.update([[gravity, jump_speed]], [perf])
         print(f"Sample {i + 1} done")
+        
+        # 记录初始采样的性能数据
+        iterations.append(iteration_count)
+        performances.append(perf)
+        iteration_count += 1
 
     n_iterations = 15
     best_params = None
@@ -100,6 +111,23 @@ def main():
         print(f"Parameters: gravity={next_point[0]:.3f}, jump_speed={next_point[1]:.3f}")
         print(f"Performance: {perf:.3f}")
         print(f"Best so far: {best_perf:.3f}\n")
+        
+        # 记录优化迭代的性能数据
+        iterations.append(iteration_count)
+        performances.append(perf)
+        iteration_count += 1
+
+    # 绘制性能曲线
+    plt.figure(figsize=(10, 6))
+    plt.plot(iterations, performances, 'b-o')
+    plt.axvline(x=n_initial-1, color='r', linestyle='--', label='Initial Sampling End')
+    plt.xlabel('Iteration')
+    plt.ylabel('Performance (f_perf)')
+    plt.title('Performance vs. Iteration')
+    plt.grid(True)
+    plt.legend()
+    plt.savefig('optimization_performance.png')
+    plt.close()
 
     print("\nFinal test with best parameters:")
     print(f"Best parameters: gravity={best_params[0]:.3f}, jump_speed={best_params[1]:.3f}")

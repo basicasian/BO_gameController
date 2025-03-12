@@ -44,6 +44,8 @@ class Ball:
     def draw(self, screen):
         pygame.draw.circle(screen, RED, (int(self.x), int(self.y)), BALL_RADIUS)
 
+first_target_entry_time = None
+
 def main():
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -58,6 +60,9 @@ def main():
     
     running = True
     last_sample_time = time.time()
+    start_time = time.time()
+    global first_target_entry_time
+    first_target_entry_time = None
     
     while running:
         current_time = time.time()
@@ -73,6 +78,8 @@ def main():
 
         if current_time - last_sample_time >= 0.05:
             distance = abs(ball.y - target_center)
+            if distance <= TARGET_SIZE / 2 and first_target_entry_time is None:
+                first_target_entry_time = time.time() - start_time
             if hasattr(main, 'distance_queue'):
                 main.distance_queue.put(distance)
             last_sample_time = current_time
