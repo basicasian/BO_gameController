@@ -45,6 +45,11 @@ class Ball:
         pygame.draw.circle(screen, RED, (int(self.x), int(self.y)), BALL_RADIUS)
 
 def main():
+    # 确保每次运行时重新初始化pygame
+    pygame.init()
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption("Test Gizmo")
+    
     clock = pygame.time.Clock()
     ball = Ball()
     
@@ -53,7 +58,7 @@ def main():
     target_bottom = target_center + TARGET_SIZE // 2
     
     running = True
-    last_sample_time = time.time()  # 添加采样时间记录
+    last_sample_time = time.time()
     
     while running:
         current_time = time.time()
@@ -67,7 +72,6 @@ def main():
 
         ball.update()
 
-        # 每50ms进行一次采样
         if current_time - last_sample_time >= 0.05:
             distance = abs(ball.y - target_center)
             if hasattr(main, 'distance_queue'):
@@ -94,8 +98,8 @@ def main():
         pygame.display.flip()
         clock.tick(60)
     
+    pygame.display.quit()
     pygame.quit()
-    sys.exit()
 
 if __name__ == "__main__":
     main()

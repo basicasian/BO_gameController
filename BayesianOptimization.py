@@ -31,7 +31,7 @@ class BayesianOptimizer:
         
     def expected_improvement(self, X):
         X = X.reshape(-1, self.dim)
-        if not self.X_observed:
+        if len(self.X_observed) == 0:
             return np.ones(X.shape[0])
 
         mu, sigma = self.gp.predict(X, return_std=True)
@@ -70,16 +70,16 @@ class BayesianOptimizer:
     def update(self, X, y):
         X = np.array(X).reshape(-1, self.dim)
         y = np.array(y).ravel()
-
-        if not self.X_observed:
+    
+        # 修改检查方式
+        if len(self.X_observed) == 0:
             self.X_observed = X
             self.y_observed = y
         else:
             self.X_observed = np.vstack((self.X_observed, X))
             self.y_observed = np.concatenate((self.y_observed, y))
-
+    
         self.best_value = np.max(self.y_observed)
-
         self.gp.fit(self.X_observed, self.y_observed)
 
 def example_usage():
