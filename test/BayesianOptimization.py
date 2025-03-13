@@ -28,7 +28,7 @@ class BayesianOptimizer:
             return np.ones(X.shape[0])
 
         mu, sigma = self.gp.predict(X, return_std=True)
-        sigma = sigma.reshape(-1, 1)
+        sigma = sigma.flatten()
 
         improvement = mu - self.best_value
 

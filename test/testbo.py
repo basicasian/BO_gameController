@@ -4,8 +4,10 @@ import pygame
 from BayesianOptimization import BayesianOptimizer
 from preprocess import f_perf, error_calc, accuracy, res_speed
 import testgizmo
-import threading
+import threading   
 import queue
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 
@@ -72,9 +74,10 @@ def main():
 
     optimizer = BayesianOptimizer(bounds)
     
-    # 用于记录性能数据
+    # 用于记录性能数据和采样点
     iterations = []
     performances = []
+    all_points = []
     iteration_count = 0
 
     n_initial = 5
@@ -87,9 +90,10 @@ def main():
         optimizer.update([[gravity, jump_speed]], [perf])
         print(f"Sample {i + 1} done")
         
-        # 记录初始采样的性能数据
+        # 记录初始采样的性能数据和采样点
         iterations.append(iteration_count)
         performances.append(perf)
+        all_points.append([gravity, jump_speed])
         iteration_count += 1
 
     n_iterations = 15
@@ -98,9 +102,32 @@ def main():
 
     for i in range(n_iterations):
         next_point = optimizer.suggest_next_point()
+        x = np.linspace(0.1, 0.9, 30)
+        y = np.linspace(-10, -1, 30)
+        X, Y = np.meshgrid(x, y)
+        points = np.stack([X.ravel(), Y.ravel()], axis=1)
+        print(points.shape)
+        ei_values = optimizer.expected_improvement(points)
+        EI = ei_values.reshape(30, 30)
+        plt.figure(figsize=(10, 8))
+        plt.contourf(X, Y, EI, levels=20)
+        plt.colorbar(label='Expected Improvement')
+
+        # 绘制已采样的点
+        all_points_array = np.array(all_points)   
+        plt.scatter(all_points_array[:, 0], all_points_array[:, 1], 
+                    c='red', marker='x', label='Previous samples')
+        plt.scatter(next_point[0], next_point[1], 
+                    c='white', marker='*', s=150, label='Next sample')
+        plt.xlabel('Gravity')
+        plt.ylabel('Jump Speed')
+        plt.title(f'Expected Improvement - Iteration {i+1}')
+        plt.legend()
+        # plt.show()
+        plt.savefig(f'ei_iteration.png')
+        plt.close()
 
         perf = objective_function(next_point)
-
         optimizer.update([next_point], [perf])
 
         if perf > best_perf:
@@ -112,9 +139,10 @@ def main():
         print(f"Performance: {perf:.3f}")
         print(f"Best so far: {best_perf:.3f}\n")
         
-        # 记录优化迭代的性能数据
+        # 记录优化迭代的性能数据和采样点
         iterations.append(iteration_count)
         performances.append(perf)
+        all_points.append(next_point)
         iteration_count += 1
 
     # 绘制性能曲线
@@ -122,6 +150,7 @@ def main():
     plt.plot(iterations, performances, 'b-o')
     plt.axvline(x=n_initial-1, color='r', linestyle='--', label='Initial Sampling End')
     plt.xlabel('Iteration')
+    plt.xticks(iterations)
     plt.ylabel('Performance (f_perf)')
     plt.title('Performance vs. Iteration')
     plt.grid(True)
