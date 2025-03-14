@@ -64,8 +64,7 @@ class SimpleReticle:
         self.cursor_position = (initial_x, initial_y)
         self.update_cursor_position(*self.cursor_position)
 
-    def update(self, dt, joystick_x=0, joystick_y=0, jitter_val = 0.1):
-        speed_factor = 3
+    def update(self, dt, joystick_x=0, speed_factor = 3, joystick_y=0, jitter_val = 0.1):
 
         jitter_x = np.random.normal(0, jitter_val)
         jitter_y = np.random.normal(0, jitter_val)
