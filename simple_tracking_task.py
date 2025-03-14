@@ -74,7 +74,6 @@ class SimpleReticle:
             self.velocity_x = self.velocity_x * 0.8 + target_vx * 0.2
             self.velocity_y = self.velocity_y * 0.8 + target_vy * 0.2
         else:
-            # 无输入时应用阻力
             self.velocity_x *= self.friction
             self.velocity_y *= self.friction
 
@@ -126,9 +125,9 @@ class TrackingTask:
         if pygame.joystick.get_count() > 0:
             self.joystick = pygame.joystick.Joystick(0)
             self.joystick.init()
-            print(f"已连接摇杆: {self.joystick.get_name()}")
+            print(f"Detected Joystick: {self.joystick.get_name()}")
         else:
-            print("未检测到摇杆，将使用键盘方向键作为备用控制")
+            print("No Joystick Detected")
         
         # Create window
         self.window = pyglet.window.Window(width=800, height=600, caption="Tracking Task")
@@ -151,9 +150,8 @@ class TrackingTask:
         self.window.event(self.on_draw)
         
     def on_draw(self):
-        # 设置白色背景
         self.window.clear()
-        pyglet.gl.glClearColor(1, 1, 1, 1)  # 设置清除颜色为白色
+        pyglet.gl.glClearColor(1, 1, 1, 1)
         self.window.clear()
         self.reticle.draw()
         
@@ -194,7 +192,6 @@ class TrackingTask:
         if self.first_target_entry_time is None and self.reticle.is_cursor_in_target():
             self.first_target_entry_time = current_time
             self.is_sampling = True
-            print(f"光标首次进入目标区域时间: {self.first_target_entry_time:.3f}秒")
         if self.is_sampling:
             if not self.sampling_times or (current_time - self.sampling_times[-1] >= self.sampling_interval):
                 distance = self.reticle.return_deviation()
@@ -220,13 +217,13 @@ def main():
     results = task.run()
 
     if results["first_entry_time"] is not None:
-        print(f"光标首次进入目标区域时间: {results['first_entry_time']:.3f}秒")
-        print(f"采样数量: {len(results['distances'])}")
-        print(f"平均距离: {np.mean(results['distances']):.3f}")
-        print(f"最大距离: {np.max(results['distances']):.3f}")
-        print(f"最小距离: {np.min(results['distances']):.3f}")
+        print(f"Moving time: {results['first_entry_time']:.3f}seconds")
+        print(f"num of samples: {len(results['distances'])}")
+        print(f"average distance: {np.mean(results['distances']):.3f}")
+        print(f"max distance: {np.max(results['distances']):.3f}")
+        print(f"min distance: {np.min(results['distances']):.3f}")
     else:
-        print("光标未进入目标区域")
+        print("No cursor in target zone")
 
 if __name__ == "__main__":
     main()
