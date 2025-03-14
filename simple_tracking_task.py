@@ -64,8 +64,11 @@ class SimpleReticle:
         self.cursor_position = (initial_x, initial_y)
         self.update_cursor_position(*self.cursor_position)
 
-    def update(self, dt, joystick_x=0, joystick_y=0):
+    def update(self, dt, joystick_x=0, joystick_y=0, jitter_val = 0.1):
         speed_factor = 3
+
+        jitter_x = np.random.normal(0, jitter_val)
+        jitter_y = np.random.normal(0, jitter_val)
 
         target_vx = joystick_x * speed_factor * 60
         target_vy = -joystick_y * speed_factor * 60
@@ -74,16 +77,16 @@ class SimpleReticle:
             self.velocity_x = self.velocity_x * 0.8 + target_vx * 0.2
             self.velocity_y = self.velocity_y * 0.8 + target_vy * 0.2
         else:
-            self.velocity_x *= self.friction
-            self.velocity_y *= self.friction
+            self.velocity_x *= self.friction + jitter_x
+            self.velocity_y *= self.friction + jitter_y
 
             if abs(self.velocity_x) < 0.01:
                 self.velocity_x = 0
             if abs(self.velocity_y) < 0.01:
                 self.velocity_y = 0
 
-        new_x = self.cursor_x + self.velocity_x * dt
-        new_y = self.cursor_y + self.velocity_y * dt
+        new_x = self.cursor_x + self.velocity_x * dt + jitter_x
+        new_y = self.cursor_y + self.velocity_y * dt + jitter_y
 
         self.update_cursor_position(new_x, new_y)
 
@@ -109,6 +112,7 @@ class SimpleReticle:
     def return_deviation(self):
         # Calculate distance from cursor to center
         return math.sqrt(self.cursor_x**2 + self.cursor_y**2)
+
     
     def draw(self):
         self.batch.draw()
@@ -156,13 +160,11 @@ class TrackingTask:
         self.reticle.draw()
         
     def update(self, dt):
-        # Check if task is complete
         current_time = time.time() - self.start_time
         if current_time >= self.duration:
             pyglet.app.exit()
             return
-        
-        # 获取摇杆输入
+
         joystick_x = 0
         joystick_y = 0
 
