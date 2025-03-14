@@ -7,7 +7,7 @@ import random
 import pygame
 
 class SimpleReticle:
-    def __init__(self, window_width, window_height, friction=0.98, speed_factor=3):
+    def __init__(self, window_width, window_height, friction=0.94, speed_factor=9):
         self.window_width = window_width
         self.window_height = window_height
         self.center_x = window_width // 2
