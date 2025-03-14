@@ -7,7 +7,7 @@ import random
 import pygame
 
 class SimpleReticle:
-    def __init__(self, window_width, window_height, target_proportion=0.25):
+    def __init__(self, window_width, window_height, friction=0.98, speed_factor=3):
         self.window_width = window_width
         self.window_height = window_height
         self.center_x = window_width // 2
@@ -55,7 +55,8 @@ class SimpleReticle:
 
         self.velocity_x = 0
         self.velocity_y = 0
-        self.friction = 0.98
+        self.friction = friction
+        self.speed_factor = speed_factor
 
         initial_angle = random.uniform(0, 2 * math.pi)
         initial_x = 180 * math.cos(initial_angle)
@@ -64,8 +65,9 @@ class SimpleReticle:
         self.cursor_position = (initial_x, initial_y)
         self.update_cursor_position(*self.cursor_position)
 
-    def update(self, dt, joystick_x=0, speed_factor = 3, joystick_y=0, jitter_val = 0.1):
+    def update(self, dt, joystick_x=0, joystick_y=0, jitter_val=0.5):
 
+        speed_factor = self.speed_factor
         jitter_x = np.random.normal(0, jitter_val)
         jitter_y = np.random.normal(0, jitter_val)
 
@@ -131,14 +133,11 @@ class TrackingTask:
             print(f"Detected Joystick: {self.joystick.get_name()}")
         else:
             print("No Joystick Detected")
-        
-        # Create window
+
         self.window = pyglet.window.Window(width=800, height=600, caption="Tracking Task")
-        
-        # Create reticle
-        self.reticle = SimpleReticle(self.window.width, self.window.height, target_proportion=0.25)
-        
-        # Tracking data
+
+        self.reticle = SimpleReticle(self.window.width, self.window.height)
+
         self.first_target_entry_time = None
         self.distances = []
         self.sampling_times = []
@@ -152,15 +151,32 @@ class TrackingTask:
         # Set up event handlers
         self.window.event(self.on_draw)
         
+        # 添加时间显示标签
+        self.time_label = pyglet.text.Label(
+            text='Time: 15.0',
+            x=self.window.width - 20,
+            y=self.window.height - 20,
+            anchor_x='right',
+            anchor_y='top',
+            color=(0, 0, 0, 255),
+            font_size=16
+        )
+        
     def on_draw(self):
         self.window.clear()
         pyglet.gl.glClearColor(1, 1, 1, 1)
         self.window.clear()
         self.reticle.draw()
+        self.time_label.draw()
         
     def update(self, dt):
         current_time = time.time() - self.start_time
+        remaining_time = max(0, self.duration - current_time)
+        self.time_label.text = f'Time: {remaining_time:.1f}'
+        
         if current_time >= self.duration:
+            if hasattr(self, 'on_experiment_end'):
+                self.on_experiment_end()
             pyglet.app.exit()
             return
 
@@ -199,13 +215,26 @@ class TrackingTask:
                 self.distances.append(distance)
                 self.sampling_times.append(current_time)
     
-    def run(self):
+    def run(self, test_env=True):
+        # 确保之前的计时器被清除
+        pyglet.clock.unschedule(self.update)
+        
+        # 重新设置计时器和开始时间
         pyglet.clock.schedule_interval(self.update, 1/60.0)
         self.start_time = time.time()
-        pyglet.app.run()
-        if self.joystick:
-            self.joystick.quit()
-        pygame.quit()
+        
+        try:
+            pyglet.app.run()
+        finally:
+            # 确保清理资源
+            pyglet.clock.unschedule(self.update)
+            if test_env:
+                if self.joystick:
+                    self.joystick.quit()
+                pygame.quit()
+            
+            # 关闭窗口
+            self.window.close()
 
         return {
             "first_entry_time": self.first_target_entry_time,
