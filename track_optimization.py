@@ -1,9 +1,7 @@
 import optuna
-import numpy as np
 import pyglet
-
+from objective import PerformanceModel, error_calc
 from simple_tracking_task import TrackingTask
-from pyglet.window import key
 import time
 import pygame
 
@@ -49,26 +47,18 @@ def tracking_objective(trial):
     print(results)
 
     if results["first_entry_time"] is None:
-        print(1111)
         return 0.0
 
-    avg_distance = np.mean(results["distances"])
-    max_distance = np.max(results["distances"])
+    error = error_calc(results["distances"])
     moving_time = results["first_entry_time"]
 
-    normalized_avg_distance = 1 - (avg_distance / task.reticle.target_radius)
-    normalized_max_distance = 1 - (max_distance / (task.reticle.target_radius * 2))
-    normalized_moving_time = 1 - min(moving_time / 5.0, 1.0)
-
-    score = (normalized_avg_distance * 0.4 + 
-             normalized_max_distance * 0.3 + 
-             normalized_moving_time * 0.3)
+    perf_model = PerformanceModel()
+    score = perf_model.compute_performance(error, moving_time)
     
-    print("\n结果:")
-    print(f"平均距离: {avg_distance:.3f}")
-    print(f"最大距离: {max_distance:.3f}")
-    print(f"移动时间: {moving_time:.3f}秒")
-    print(f"得分: {score:.4f}")
+    print("\nResults: ")
+    print(f"Error: {error:.3f}")
+    print(f"Moving time: {moving_time:.3f}秒")
+    print(f"Score: {score:.4f}")
     
     return score
 

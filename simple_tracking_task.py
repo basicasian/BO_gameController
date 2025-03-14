@@ -49,7 +49,7 @@ class SimpleReticle:
         )
 
         self.cursor_circle = pyglet.shapes.Circle(
-            self.center_x, self.center_y, 3,  # 3px cursor radius
+            self.center_x, self.center_y, 3,
             color=self.cursor_color, batch=self.batch
         )
 
@@ -65,7 +65,7 @@ class SimpleReticle:
         self.cursor_position = (initial_x, initial_y)
         self.update_cursor_position(*self.cursor_position)
 
-    def update(self, dt, joystick_x=0, joystick_y=0, jitter_val=0.5):
+    def update(self, dt, joystick_x=0, joystick_y=0, jitter_val=0.01):
 
         speed_factor = self.speed_factor
         jitter_x = np.random.normal(0, jitter_val)

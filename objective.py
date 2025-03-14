@@ -14,8 +14,8 @@ def res_speed(moving_time, jitter=0, alpha=0.5):
     return 1 / (moving_time + alpha * jitter)
 
 
-def error_calc(pos: list, scale: float = 0.02):
-    mapped_pos = [x * scale for x in pos]
+def error_calc(dis: list, scale: float = 0.02):
+    mapped_pos = [x * scale for x in dis]
     n = len(mapped_pos)
     error = sum(mapped_pos) / n
     return error
