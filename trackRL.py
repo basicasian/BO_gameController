@@ -1,6 +1,8 @@
 import gymnasium as gym
 import numpy as np
 from gymnasium import spaces
+
+import objective
 from simple_tracking_task import TrackingTask, SimpleReticle
 from objective import PerformanceModel, error_calc
 import pyglet
@@ -67,11 +69,13 @@ class TrackingEnv(gym.Env):
             
         if self.task.first_target_entry_time is not None:
             moving_time = self.task.first_target_entry_time
-            reward = self.perf_model.compute_performance(error, moving_time)
+            # reward = self.perf_model.compute_performance(error, moving_time)
+            reward = objective.accuracy(error, 1)
         else:
             reward = -error
 
         terminated = self.current_step >= self.max_steps
+
         truncated = False
         
         info = {
@@ -101,9 +105,6 @@ if __name__ == "__main__":
         if terminated or truncated:
             env.close()
             pyglet.app.exit()
-    
-    # 设置pyglet更新间隔
+
     pyglet.clock.schedule_interval(update, 1/200)
-    
-    # 运行pyglet事件循环
     pyglet.app.run()

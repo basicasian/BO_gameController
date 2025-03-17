@@ -8,6 +8,7 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from datetime import datetime
+import torch
 
 class TrainingCallback(BaseCallback):
     def __init__(self, check_freq, verbose=1):
@@ -17,6 +18,8 @@ class TrainingCallback(BaseCallback):
         self.losses = []
         self.episode_reward = 0
         self.episode_rewards = []
+        self.device = 'cpu' if not torch.cuda.is_available() else 'cuda'
+        print(self.device)
         
     def _on_step(self):
         if self.n_calls % self.check_freq == 0:
@@ -66,7 +69,7 @@ model = PPO(
     clip_range=0.2
 )
 
-callback = TrainingCallback(check_freq=500)
+callback = TrainingCallback(check_freq=1000)
 
 total_timesteps = 100000
 model.learn(

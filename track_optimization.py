@@ -57,7 +57,7 @@ def tracking_objective(trial):
     
     print("\nResults: ")
     print(f"Error: {error:.3f}")
-    print(f"Moving time: {moving_time:.3f}秒")
+    print(f"Moving time: {moving_time:.3f} seconds")
     print(f"Score: {score:.4f}")
     
     return score

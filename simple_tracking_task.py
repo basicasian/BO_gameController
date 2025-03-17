@@ -64,6 +64,32 @@ class SimpleReticle:
         
         self.cursor_position = (initial_x, initial_y)
         self.update_cursor_position(*self.cursor_position)
+        self.bezier_points_x = self._generate_bezier_points()
+        self.bezier_points_y = self._generate_bezier_points()
+        self.start_time = time.time()
+        
+    def _generate_bezier_points(self, speed=4):
+        t1 = random.uniform(0, 5)
+        t2 = random.uniform(6, 10)
+        t3 = random.uniform(11, 15)
+
+        v1 = random.uniform(-speed, speed)
+        v2 = random.uniform(-speed, speed)
+        v3 = random.uniform(-speed, speed)
+        
+        return [(t1, v1), (t2, v2), (t3, v3)]
+    
+    def _bezier_value(self, t, points):
+        if t < points[0][0]:
+            return 0
+        if t > points[-1][0]:
+            return 0
+
+        for i in range(len(points)-1):
+            if points[i][0] <= t <= points[i+1][0]:
+                t_relative = (t - points[i][0]) / (points[i+1][0] - points[i][0])
+                return points[i][1] + t_relative * (points[i+1][1] - points[i][1])
+        return 0
 
     def update(self, dt, joystick_x=0, joystick_y=0, jitter_val=0.01):
 
@@ -74,12 +100,16 @@ class SimpleReticle:
         target_vx = joystick_x * speed_factor * 60
         target_vy = -joystick_y * speed_factor * 60
 
+        current_time = time.time() - self.start_time
+        bezier_vx = self._bezier_value(current_time, self.bezier_points_x)
+        bezier_vy = self._bezier_value(current_time, self.bezier_points_y)
+        
         if abs(joystick_x) > 0.1 or abs(joystick_y) > 0.1:
             self.velocity_x = self.velocity_x * 0.8 + target_vx * 0.2
             self.velocity_y = self.velocity_y * 0.8 + target_vy * 0.2
         else:
-            self.velocity_x *= self.friction + jitter_x
-            self.velocity_y *= self.friction + jitter_y
+            self.velocity_x = self.velocity_x * (self.friction + jitter_x) + bezier_vx
+            self.velocity_y = self.velocity_y * (self.friction + jitter_y) + bezier_vy
 
             if abs(self.velocity_x) < 0.01:
                 self.velocity_x = 0
@@ -94,19 +124,15 @@ class SimpleReticle:
     def update_cursor_position(self, x, y):
         self.cursor_x = x
         self.cursor_y = y
-        
-        # Update the visual cursor position
+
         self.cursor_circle.x = self.center_x + x
         self.cursor_circle.y = self.center_y + y
-        
-        # Update cursor color based on whether it's in the target
         if self.is_cursor_in_target():
             self.cursor_circle.color = self.cursor_color
         else:
             self.cursor_circle.color = self.cursor_outside_color
     
     def is_cursor_in_target(self):
-        # Check if cursor is within target circle
         distance = math.sqrt(self.cursor_x**2 + self.cursor_y**2)
         return distance <= self.target_radius
     
@@ -119,7 +145,7 @@ class SimpleReticle:
         self.batch.draw()
 
 class TrackingTask:
-    def __init__(self, duration=15, sampling_rate=20):
+    def __init__(self, duration=15, sampling_rate=20, friction=0.94, speed_factor=9):
         self.duration = duration
         self.sampling_interval = 1.0 / sampling_rate
 
@@ -136,22 +162,18 @@ class TrackingTask:
 
         self.window = pyglet.window.Window(width=800, height=600, caption="Tracking Task")
 
-        self.reticle = SimpleReticle(self.window.width, self.window.height)
+        self.reticle = SimpleReticle(self.window.width, self.window.height, friction, speed_factor)
 
         self.first_target_entry_time = None
         self.distances = []
         self.sampling_times = []
         self.is_sampling = False
         self.start_time = None
-        
-        # Keyboard state for backup control
+
         self.keys = key.KeyStateHandler()
         self.window.push_handlers(self.keys)
-        
-        # Set up event handlers
         self.window.event(self.on_draw)
-        
-        # 添加时间显示标签
+
         self.time_label = pyglet.text.Label(
             text='Time: 15.0',
             x=self.window.width - 20,
@@ -216,24 +238,19 @@ class TrackingTask:
                 self.sampling_times.append(current_time)
     
     def run(self, test_env=True):
-        # 确保之前的计时器被清除
         pyglet.clock.unschedule(self.update)
-        
-        # 重新设置计时器和开始时间
         pyglet.clock.schedule_interval(self.update, 1/60.0)
         self.start_time = time.time()
         
         try:
             pyglet.app.run()
         finally:
-            # 确保清理资源
             pyglet.clock.unschedule(self.update)
             if test_env:
                 if self.joystick:
                     self.joystick.quit()
                 pygame.quit()
-            
-            # 关闭窗口
+
             self.window.close()
 
         return {
