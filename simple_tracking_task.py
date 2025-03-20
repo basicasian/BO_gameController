@@ -17,8 +17,7 @@ class SimpleReticle:
 
         self.cursor_x = 0
         self.cursor_y = 0
-        
-        # Colors
+
         self.background_color = (255, 255, 255)
         self.target_color = (220, 220, 220)
         self.target_border_color = (180, 180, 180)
@@ -49,8 +48,20 @@ class SimpleReticle:
         )
 
         self.cursor_circle = pyglet.shapes.Circle(
-            self.center_x, self.center_y, 3,
+            self.center_x, self.center_y, 2,
             color=self.cursor_color, batch=self.batch
+        )
+
+        self.cursor_h_line = pyglet.shapes.Line(
+            self.center_x - 8, self.center_y,
+            self.center_x + 8, self.center_y,
+            width=1, color=self.cursor_color, batch=self.batch
+        )
+        
+        self.cursor_v_line = pyglet.shapes.Line(
+            self.center_x, self.center_y - 8,
+            self.center_x, self.center_y + 8,
+            width=1, color=self.cursor_color, batch=self.batch
         )
 
         self.velocity_x = 0
@@ -127,10 +138,25 @@ class SimpleReticle:
 
         self.cursor_circle.x = self.center_x + x
         self.cursor_circle.y = self.center_y + y
+
+        self.cursor_h_line.x = self.center_x + x - 8
+        self.cursor_h_line.y = self.center_y + y
+        self.cursor_h_line.x2 = self.center_x + x + 8
+        self.cursor_h_line.y2 = self.center_y + y
+        
+        self.cursor_v_line.x = self.center_x + x
+        self.cursor_v_line.y = self.center_y + y - 8
+        self.cursor_v_line.x2 = self.center_x + x
+        self.cursor_v_line.y2 = self.center_y + y + 8
+
         if self.is_cursor_in_target():
             self.cursor_circle.color = self.cursor_color
+            self.cursor_h_line.color = self.cursor_color
+            self.cursor_v_line.color = self.cursor_color
         else:
             self.cursor_circle.color = self.cursor_outside_color
+            self.cursor_h_line.color = self.cursor_outside_color
+            self.cursor_v_line.color = self.cursor_outside_color
     
     def is_cursor_in_target(self):
         distance = math.sqrt(self.cursor_x**2 + self.cursor_y**2)
@@ -181,7 +207,7 @@ class TrackingTask:
             anchor_x='right',
             anchor_y='top',
             color=(0, 0, 0, 255),
-            font_size=16
+            font_size=10
         )
         
     def on_draw(self):
