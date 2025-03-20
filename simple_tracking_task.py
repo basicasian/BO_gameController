@@ -7,11 +7,12 @@ import random
 import pygame
 
 class SimpleReticle:
-    def __init__(self, window_width, window_height, friction=0.94, speed_factor=9):
+    def __init__(self, window_width, window_height, friction=0.94, speed_factor=9, duration = 15):
         self.window_width = window_width
         self.window_height = window_height
         self.center_x = window_width // 2
         self.center_y = window_height // 2
+        self.duration = duration
 
         self.target_radius = 25
 
@@ -53,14 +54,14 @@ class SimpleReticle:
         )
 
         self.cursor_h_line = pyglet.shapes.Line(
-            self.center_x - 8, self.center_y,
-            self.center_x + 8, self.center_y,
+            self.center_x - 12, self.center_y,
+            self.center_x + 12, self.center_y,
             width=1, color=self.cursor_color, batch=self.batch
         )
         
         self.cursor_v_line = pyglet.shapes.Line(
-            self.center_x, self.center_y - 8,
-            self.center_x, self.center_y + 8,
+            self.center_x, self.center_y - 12,
+            self.center_x, self.center_y + 12,
             width=1, color=self.cursor_color, batch=self.batch
         )
 
@@ -79,10 +80,10 @@ class SimpleReticle:
         self.bezier_points_y = self._generate_bezier_points()
         self.start_time = time.time()
         
-    def _generate_bezier_points(self, speed=4):
-        t1 = random.uniform(0, 5)
-        t2 = random.uniform(6, 10)
-        t3 = random.uniform(11, 15)
+    def _generate_bezier_points(self, speed=10):
+        t1 = random.uniform(0, int(self.duration/3))
+        t2 = random.uniform(int(self.duration/3)+1, int(2*self.duration/3))
+        t3 = random.uniform(int(2*self.duration/3)+1, self.duration)
 
         v1 = random.uniform(-speed, speed)
         v2 = random.uniform(-speed, speed)
@@ -139,15 +140,15 @@ class SimpleReticle:
         self.cursor_circle.x = self.center_x + x
         self.cursor_circle.y = self.center_y + y
 
-        self.cursor_h_line.x = self.center_x + x - 8
+        self.cursor_h_line.x = self.center_x + x - 12
         self.cursor_h_line.y = self.center_y + y
-        self.cursor_h_line.x2 = self.center_x + x + 8
+        self.cursor_h_line.x2 = self.center_x + x + 12
         self.cursor_h_line.y2 = self.center_y + y
         
         self.cursor_v_line.x = self.center_x + x
-        self.cursor_v_line.y = self.center_y + y - 8
+        self.cursor_v_line.y = self.center_y + y - 12
         self.cursor_v_line.x2 = self.center_x + x
-        self.cursor_v_line.y2 = self.center_y + y + 8
+        self.cursor_v_line.y2 = self.center_y + y + 12
 
         if self.is_cursor_in_target():
             self.cursor_circle.color = self.cursor_color
@@ -186,9 +187,18 @@ class TrackingTask:
         else:
             print("No Joystick Detected")
 
-        self.window = pyglet.window.Window(width=800, height=600, caption="Tracking Task")
+        display = pyglet.canvas.get_display()
+        screens = display.get_screens()
 
-        self.reticle = SimpleReticle(self.window.width, self.window.height, friction, speed_factor)
+        target_screen = screens[0]
+
+        self.window = pyglet.window.Window(
+            fullscreen=True,
+            screen=target_screen,
+            caption="Tracking Task"
+        )
+
+        self.reticle = SimpleReticle(self.window.width, self.window.height, friction, speed_factor, self.duration)
 
         self.first_target_entry_time = None
         self.distances = []
@@ -286,7 +296,7 @@ class TrackingTask:
         }
 
 def main():
-    task = TrackingTask(duration=15, sampling_rate=20)
+    task = TrackingTask(duration=30, sampling_rate=20)
     results = task.run()
 
     if results["first_entry_time"] is not None:
