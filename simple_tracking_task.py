@@ -80,7 +80,7 @@ class SimpleReticle:
         self.bezier_points_y = self._generate_bezier_points()
         self.start_time = time.time()
         
-    def _generate_bezier_points(self, speed=10):
+    def _generate_bezier_points(self, speed=4):
         t1 = random.uniform(0, int(self.duration/3))
         t2 = random.uniform(int(self.duration/3)+1, int(2*self.duration/3))
         t3 = random.uniform(int(2*self.duration/3)+1, self.duration)
@@ -296,7 +296,7 @@ class TrackingTask:
         }
 
 def main():
-    task = TrackingTask(duration=30, sampling_rate=20)
+    task = TrackingTask(duration=15, sampling_rate=20)
     results = task.run()
 
     if results["first_entry_time"] is not None:
