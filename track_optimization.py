@@ -57,12 +57,25 @@ def tracking_objective(trial):
         
         print(f"Sample Score: {score:.4f}")
 
+        if i == 4:
+            current_avg = sum(scores) / 5
+
+            previous_scores = [t.value for t in trial.study.trials if t.value is not None]
+            if previous_scores:
+                prev_mean = np.mean(previous_scores)
+                prev_std = np.std(previous_scores)
+                
+                if current_avg < (prev_mean - prev_std):
+                    print(f"\nEarly stopping: Current avg ({current_avg:.4f}) is significantly lower than historical performance (mean: {prev_mean:.4f}, std: {prev_std:.4f})")
+                    return 0.0
+
     final_scores = scores[10:]
     final_score = sum(final_scores) / 10
 
     std_dev = np.std(final_scores)
+    std_factor = 0.6
     
-    stability_factor = 0.5 + 0.5 * np.exp(-std_dev)
+    stability_factor = (1-std_factor) + std_factor * np.exp(-std_dev)
 
     adjusted_score = final_score * stability_factor
     
