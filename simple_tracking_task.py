@@ -7,7 +7,7 @@ import random
 import pygame
 
 class SimpleReticle:
-    def __init__(self, window_width, window_height, friction=0.94, speed_factor=9, duration = 15):
+    def __init__(self, window_width, window_height, friction=0.94, speed_factor=7, duration=15, enable_bezier=False):
         self.window_width = window_width
         self.window_height = window_height
         self.center_x = window_width // 2
@@ -74,12 +74,15 @@ class SimpleReticle:
         initial_x = 180 * math.cos(initial_angle)
         initial_y = 180 * math.sin(initial_angle)
         
+        self.enable_bezier = enable_bezier
+        
         self.cursor_position = (initial_x, initial_y)
         self.update_cursor_position(*self.cursor_position)
-        self.bezier_points_x = self._generate_bezier_points()
-        self.bezier_points_y = self._generate_bezier_points()
+        if self.enable_bezier:
+            self.bezier_points_x = self._generate_bezier_points()
+            self.bezier_points_y = self._generate_bezier_points()
         self.start_time = time.time()
-        
+
     def _generate_bezier_points(self, speed=4):
         t1 = random.uniform(0, int(self.duration/3))
         t2 = random.uniform(int(self.duration/3)+1, int(2*self.duration/3))
@@ -113,8 +116,8 @@ class SimpleReticle:
         target_vy = -joystick_y * speed_factor * 60
 
         current_time = time.time() - self.start_time
-        bezier_vx = self._bezier_value(current_time, self.bezier_points_x)
-        bezier_vy = self._bezier_value(current_time, self.bezier_points_y)
+        bezier_vx = self._bezier_value(current_time, self.bezier_points_x) if self.enable_bezier else 0
+        bezier_vy = self._bezier_value(current_time, self.bezier_points_y) if self.enable_bezier else 0
         
         if abs(joystick_x) > 0.1 or abs(joystick_y) > 0.1:
             self.velocity_x = self.velocity_x * 0.8 + target_vx * 0.2
@@ -172,7 +175,7 @@ class SimpleReticle:
         self.batch.draw()
 
 class TrackingTask:
-    def __init__(self, duration=15, sampling_rate=20, friction=0.94, speed_factor=9):
+    def __init__(self, duration=15, sampling_rate=20, friction=0.94, speed_factor=9, enable_bezier=True):
         self.duration = duration
         self.sampling_interval = 1.0 / sampling_rate
 
@@ -198,13 +201,15 @@ class TrackingTask:
             caption="Tracking Task"
         )
 
-        self.reticle = SimpleReticle(self.window.width, self.window.height, friction, speed_factor, self.duration)
+        self.reticle = SimpleReticle(self.window.width, self.window.height, friction, speed_factor, self.duration, enable_bezier)
 
         self.first_target_entry_time = None
         self.distances = []
         self.sampling_times = []
         self.is_sampling = False
         self.start_time = None
+        self.target_stay_time = 0
+        self.last_in_target = False
 
         self.keys = key.KeyStateHandler()
         self.window.push_handlers(self.keys)
@@ -231,7 +236,7 @@ class TrackingTask:
         current_time = time.time() - self.start_time
         remaining_time = max(0, self.duration - current_time)
         self.time_label.text = f'Time: {remaining_time:.1f}'
-        
+
         if current_time >= self.duration:
             if hasattr(self, 'on_experiment_end'):
                 self.on_experiment_end()
@@ -264,14 +269,27 @@ class TrackingTask:
                 joystick_y = -1
 
         self.reticle.update(dt, joystick_x, joystick_y)
-        if self.first_target_entry_time is None and self.reticle.is_cursor_in_target():
-            self.first_target_entry_time = current_time
-            self.is_sampling = True
-        if self.is_sampling:
-            if not self.sampling_times or (current_time - self.sampling_times[-1] >= self.sampling_interval):
-                distance = self.reticle.return_deviation()
-                self.distances.append(distance)
-                self.sampling_times.append(current_time)
+
+        if self.reticle.is_cursor_in_target():
+            if self.last_in_target:
+                self.target_stay_time += dt
+            else:
+                self.target_stay_time = 0
+                self.last_in_target = True
+        else:
+            self.target_stay_time = 0
+            self.last_in_target = False
+
+        if self.target_stay_time >= 1.0:
+            if hasattr(self, 'on_experiment_end'):
+                self.on_experiment_end()
+            pyglet.app.exit()
+            return
+
+        if not self.sampling_times or (current_time - self.sampling_times[-1] >= self.sampling_interval):
+            distance = self.reticle.return_deviation()
+            self.distances.append(distance)
+            self.sampling_times.append(current_time)
     
     def run(self, test_env=True):
         pyglet.clock.unschedule(self.update)
@@ -296,17 +314,19 @@ class TrackingTask:
         }
 
 def main():
-    task = TrackingTask(duration=15, sampling_rate=20)
+    task = TrackingTask(
+        duration=15, 
+        sampling_rate=20, 
+        enable_bezier=False
+    )
     results = task.run()
 
-    if results["first_entry_time"] is not None:
-        print(f"Moving time: {results['first_entry_time']:.3f}seconds")
-        print(f"num of samples: {len(results['distances'])}")
-        print(f"average distance: {np.mean(results['distances']):.3f}")
-        print(f"max distance: {np.max(results['distances']):.3f}")
-        print(f"min distance: {np.min(results['distances']):.3f}")
-    else:
-        print("No cursor in target zone")
+    print(f"Task duration: {results['sampling_times'][-1]:.3f} seconds")
+    print(f"num of samples: {len(results['distances'])}")
+    print(f"average distance: {np.mean(results['distances']):.3f}")
+    print(f"max distance: {np.max(results['distances']):.3f}")
+    print(f"min distance: {np.min(results['distances']):.3f}")
+
 
 if __name__ == "__main__":
     main()

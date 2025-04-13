@@ -8,14 +8,15 @@ import time
 
 
 
-def main(task_num=20):
+def main(task_num=30):
     scores = []
     for t in range(task_num):
-        task = TrackingTask(duration=15, sampling_rate=20, friction=0.949, speed_factor=5.653)
+        task = TrackingTask(duration=15, sampling_rate=20, friction=0.931, speed_factor=9.74, enable_bezier=False)
         results = task.run()
 
         error = ob.error_calc(results["distances"])
-        moving_time = results["first_entry_time"]
+        moving_time = results['sampling_times'][-1]
+        print(f"Task {t}: Moving Time = {moving_time:.4f}")
 
         perf_model = PerformanceModel()
         perf_score = perf_model.compute_performance(error, moving_time)
@@ -26,7 +27,7 @@ def main(task_num=20):
     time_now = time.time()
 
     with open(f"results{time_now}.txt", "w") as f:
-        for t, perf_score in scores:
+        for t, perf_score in scores[10:]:
             f.write(f"{t}: {perf_score}\n")
             print(f"{t}: {perf_score}")
 
@@ -41,4 +42,4 @@ def main(task_num=20):
     plt.show()
 
 if __name__ == '__main__':
-    main(10)
+    main(20)

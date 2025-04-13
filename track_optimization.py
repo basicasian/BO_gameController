@@ -4,6 +4,7 @@ from objective import PerformanceModel, error_calc
 from simple_tracking_task import TrackingTask
 import time
 import pygame
+import numpy as np
 
 pygame.init()
 pygame.joystick.init()
@@ -32,35 +33,46 @@ def tracking_objective(trial):
     print("Friction: {:.3f}".format(friction))
     print("="*50)
 
-    task = TrackingTask(duration=15, sampling_rate=20)
-    task.reticle.friction = friction
-    task.reticle.speed_factor = speed_factor
+    scores = []
+    for i in range(20):
+        print(f"\nSample {i+1}/20")
+        task = TrackingTask(duration=15, sampling_rate=20, enable_bezier=False)
+        task.reticle.friction = friction
+        task.reticle.speed_factor = speed_factor
+        
+        def on_experiment_end():
+            task.window.close()
+            pyglet.app.exit()
+        task.on_experiment_end = on_experiment_end
+        task.update = task.update
+
+        results = task.run(test_env=False)
+        
+        error = error_calc(results["distances"])
+        moving_time = results['sampling_times'][-1]
+
+        perf_model = PerformanceModel()
+        score = perf_model.compute_performance(error, moving_time)
+        scores.append(score)
+        
+        print(f"Sample Score: {score:.4f}")
+
+    final_scores = scores[10:]
+    final_score = sum(final_scores) / 10
+
+    std_dev = np.std(final_scores)
     
-    task.reticle.friction = friction
-    def on_experiment_end():
-        task.window.close()
-        pyglet.app.exit()
-    task.on_experiment_end = on_experiment_end
-    task.update = task.update
+    stability_factor = 0.5 + 0.5 * np.exp(-std_dev)
 
-    results = task.run(test_env=False)
-    print(results)
-
-    if results["first_entry_time"] is None:
-        return 0.0
-
-    error = error_calc(results["distances"])
-    moving_time = results["first_entry_time"]
-
-    perf_model = PerformanceModel()
-    score = perf_model.compute_performance(error, moving_time)
+    adjusted_score = final_score * stability_factor
     
-    print("\nResults: ")
-    print(f"Error: {error:.3f}")
-    print(f"Moving time: {moving_time:.3f} seconds")
-    print(f"Score: {score:.4f}")
+    print("\nFinal Results: ")
+    print(f"Average Score (last 10 samples): {final_score:.4f}")
+    print(f"Standard Deviation: {std_dev:.4f}")
+    print(f"Stability Factor: {stability_factor:.4f}")
+    print(f"Adjusted Score: {adjusted_score:.4f}")
     
-    return score
+    return adjusted_score
 
 def run_tracking_optimization():
     study = optuna.create_study(direction='maximize')
