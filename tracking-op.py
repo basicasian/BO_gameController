@@ -100,22 +100,33 @@ def tracking_objective(trial, pref_model, trial_history):
         similar_pairs = pref_model.find_similar_preferences()
         for pair1, pair2 in similar_pairs:
             if (pair1, pair2) not in pref_model.similar_pairs:
-                print(f"Comparing Trial {pair1} and Trial {pair2}:")
+                print(f"Similar preferences between Trial {pair1} and Trial {pair2}")
+                
                 for i in range(3):
                     print(f"\nVerification round {i+1}/3:")
-                    print(f"Trial {pair1}: speed_factor={trial_history[pair1]['speed_factor']:.2f}, "
+
+                    print(f"\nTesting Trial {pair1}...")
+                    print(f"Parameters: speed_factor={trial_history[pair1]['speed_factor']:.2f}, "
                           f"friction={trial_history[pair1]['friction']:.3f}")
-                    print(f"Trial {pair2}: speed_factor={trial_history[pair2]['speed_factor']:.2f}, "
-                          f"friction={trial_history[pair2]['friction']:.3f}")
-                print(f"Is Trial {pair1} better than Trial {pair2}? (y/n)")
+                    run_verification_trial(trial_history[pair1])
+
+                time.sleep(1)
                     
-                is_better = input().lower() == 'y'
+                for i in range(3):
+                    print(f"\nTesting Trial {pair2}...")
+                    print(f"Parameters: speed_factor={trial_history[pair2]['speed_factor']:.2f}, "
+                          f"friction={trial_history[pair2]['friction']:.3f}")
+                    run_verification_trial(trial_history[pair2])
+                    
+                is_better = input(f"\nWhich trial is better? (1 for {pair1}, 2 for {pair2}): ").strip()
                 
-                if is_better:
+                if is_better == '1':
+                    print(f"\nVerification result: Trial {pair1} is better than Trial {pair2}")
                     pref_model.verify_similar_pair(pair1, pair2)
                 else:
+                    print(f"\nVerification result: Trial {pair2} is better than Trial {pair1}")
                     pref_model.verify_similar_pair(pair2, pair1)
-                    
+                
                 pref_model.similar_pairs.append((pair1, pair2))
                 pref_model.fit(pref_model.comparison_history)
 
@@ -127,6 +138,19 @@ def tracking_objective(trial, pref_model, trial_history):
         return final_score
 
     return objective_score
+
+def run_verification_trial(params):
+    task = TrackingTask(duration=10, sampling_rate=20, enable_bezier=False)  # 缩短验证时间
+    task.reticle.friction = params['friction']
+    task.reticle.speed_factor = params['speed_factor']
+    
+    def on_experiment_end():
+        task.window.close()
+        pyglet.app.exit()
+    task.on_experiment_end = on_experiment_end
+    task.update = task.update
+
+    return task.run(test_env=False)
 
 def run_tracking_optimization(pair_mode=False, similar_comparison=False):
     n_trials = 15
