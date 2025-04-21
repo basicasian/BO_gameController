@@ -100,21 +100,18 @@ def tracking_objective(trial, pref_model, trial_history):
         similar_pairs = pref_model.find_similar_preferences()
         for pair1, pair2 in similar_pairs:
             if (pair1, pair2) not in pref_model.similar_pairs:
-                print(f"Comparing Trial {pair1} and Trial {pair2}")
-                better_count = 0
+                print(f"Comparing Trial {pair1} and Trial {pair2}:")
                 for i in range(3):
                     print(f"\nVerification round {i+1}/3:")
                     print(f"Trial {pair1}: speed_factor={trial_history[pair1]['speed_factor']:.2f}, "
                           f"friction={trial_history[pair1]['friction']:.3f}")
                     print(f"Trial {pair2}: speed_factor={trial_history[pair2]['speed_factor']:.2f}, "
                           f"friction={trial_history[pair2]['friction']:.3f}")
-                    print(f"Is Trial {pair1} better than Trial {pair2}? (y/n)")
+                print(f"Is Trial {pair1} better than Trial {pair2}? (y/n)")
                     
-                    is_better = input().lower() == 'y'
-                    if is_better:
-                        better_count += 1
+                is_better = input().lower() == 'y'
                 
-                if better_count >= 2:
+                if is_better:
                     pref_model.verify_similar_pair(pair1, pair2)
                 else:
                     pref_model.verify_similar_pair(pair2, pair1)
