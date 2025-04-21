@@ -111,34 +111,53 @@ class PlackettLuce:
         return log_prob
 
     def log_prior(self, utilities):
-        """Compute log prior (Gamma prior on exp(utilities))"""
+    
         return sum(stats.gamma.logpdf(np.exp(u), self.prior_alpha, scale=1 / self.prior_beta) + u for u in utilities)
 
     def objective(self, utilities, rankings):
-        """Negative log posterior for optimization"""
         return -(self.log_likelihood(utilities, rankings) + self.log_prior(utilities))
 
     def fit(self, rankings):
-        """Perform MAP estimation"""
         initial_utilities = np.zeros(self.n_candidates)
         result = minimize(
             lambda x: self.objective(x, rankings),
             initial_utilities,
             method='BFGS'
         )
-        return np.exp(result.x)  # Return utilities in probability space
-
+        return np.exp(result.x) 
 
 class PreferenceModel:
-    def __init__(self, n_candidates, pair=False):
+    def __init__(self, n_candidates, pair=False, similar_comparison=False):
         self.pl_model = PlackettLuce(n_candidates)
         self.utilities = None
         self.pair = pair
+        self.similar_comparison = similar_comparison
         self.n_candidates = n_candidates
         self.comparison_history = []
+        self.similar_pairs = []
+        
+    def find_similar_preferences(self):
+        if len(self.comparison_history) < 2:
+            return []
+            
+        dominance = {}
+        for winner, loser in self.comparison_history:
+            if winner not in dominance:
+                dominance[winner] = set()
+            dominance[winner].add(loser)
+        similar_pairs = []
+        for i in dominance:
+            for j in dominance:
+                if i != j and dominance[i].intersection(dominance[j]):
+                    if (i, j) not in self.similar_pairs and (j, i) not in self.similar_pairs:
+                        similar_pairs.append((i, j))
+                        
+        return similar_pairs
+        
+    def verify_similar_pair(self, pair1, pair2):
+        return self.comparison_history.append((pair1, pair2))
 
     def _convert_pairwise_to_rankings(self, pairwise_comparisons):
-        """Convert pairwise comparisons to rankings format"""
         rankings = []
         for winner, loser in pairwise_comparisons:
             rankings.append([winner, loser])
