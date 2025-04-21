@@ -130,18 +130,47 @@ class PlackettLuce:
 
 
 class PreferenceModel:
-    def __init__(self, n_candidates):
+    def __init__(self, n_candidates, pair=False):
         self.pl_model = PlackettLuce(n_candidates)
         self.utilities = None
-    def fit(self, rankings):
+        self.pair = pair
+        self.n_candidates = n_candidates
+        self.comparison_history = []
+
+    def _convert_pairwise_to_rankings(self, pairwise_comparisons):
+        """Convert pairwise comparisons to rankings format"""
+        rankings = []
+        for winner, loser in pairwise_comparisons:
+            rankings.append([winner, loser])
+        return rankings
+
+    def fit(self, comparisons):
+        if self.pair:
+            # Process pairwise comparisons
+            rankings = self._convert_pairwise_to_rankings(comparisons)
+        else:
+            # Use original rankings directly
+            rankings = comparisons
+            
         self.utilities = self.pl_model.fit(rankings)
         return self.utilities
+
+    def add_comparison(self, current_idx, is_better_than_previous):
+        """Add a new pairwise comparison result"""
+        if not self.pair:
+            raise ValueError("This method is only available in pairwise mode")
+        
+        if current_idx > 0:  # Skip first item (baseline)
+            prev_idx = current_idx - 1
+            if is_better_than_previous:
+                self.comparison_history.append((current_idx, prev_idx))
+            else:
+                self.comparison_history.append((prev_idx, current_idx))
 
     def predict(self):
         if self.utilities is None:
             raise ValueError("Model not fitted yet")
         return self.utilities
-
 
 
 class PerformanceModel:
