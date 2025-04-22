@@ -193,6 +193,7 @@ class TrackingTask:
         display = pyglet.canvas.get_display()
         screens = display.get_screens()
 
+        # target_screen = screens[-1] if len(screens) > 1 else screens[0]
         target_screen = screens[0]
 
         self.window = pyglet.window.Window(
