@@ -162,9 +162,12 @@ def run_tracking_optimization(pair_mode=False, similar_comparison=False):
     for i in range(n_trials):
         trial = study.ask()
         
+        speed_factor = trial.suggest_float('speed_factor', 1.0, 10.0)
+        friction = trial.suggest_float('friction', 0.93, 0.9999)
+        
         params = {
-            'speed_factor': trial.params['speed_factor'],
-            'friction': trial.params['friction']
+            'speed_factor': speed_factor,
+            'friction': friction
         }
         trial_history.append(params)
         
