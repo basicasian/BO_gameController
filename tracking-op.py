@@ -5,6 +5,7 @@ from simple_tracking_task import TrackingTask
 import time
 import pygame
 import numpy as np
+from selectUI import get_user_preference
 
 pygame.init()
 pygame.joystick.init()
@@ -80,8 +81,8 @@ def tracking_objective(trial, pref_model, trial_history):
                   f"friction={trial_history[-1]['friction']:.3f}")
             print(f"Current parameters: speed_factor={speed_factor:.2f}, "
                   f"friction={friction:.3f}")
-            print("Is this configuration better than the previous one? (y/n)")
-            is_better = input().lower() == 'y'
+            # Replace the input() with get_user_preference
+            is_better = get_user_preference(trial.number-1, trial.number, trial_history) == "1"
             pref_model.add_comparison(trial.number, is_better)
     else:
         if trial.number % 5 == 4:
@@ -117,10 +118,10 @@ def tracking_objective(trial, pref_model, trial_history):
                     print(f"Parameters: speed_factor={trial_history[pair2]['speed_factor']:.2f}, "
                           f"friction={trial_history[pair2]['friction']:.3f}")
                     run_verification_trial(trial_history[pair2])
-                    
-                is_better = input(f"\nWhich trial is better? (1 for {pair1}, 2 for {pair2}): ").strip()
+
+                is_better = get_user_preference(pair1, pair2, trial_history)
                 
-                if is_better == '1':
+                if is_better == "1":
                     print(f"\nVerification result: Trial {pair1} is better than Trial {pair2}")
                     pref_model.verify_similar_pair(pair1, pair2)
                 else:
