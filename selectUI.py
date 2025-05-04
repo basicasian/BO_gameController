@@ -13,6 +13,7 @@ def get_user_preference(trial1, trial2, trial_history):
     HIGHLIGHT = (0, 255, 0)
 
     font = pygame.font.Font(None, 48)
+    hint_font = pygame.font.Font(None, 36)
     title_font = pygame.font.Font(None, 64)
 
     params1 = trial_history[trial1]
@@ -34,6 +35,34 @@ def get_user_preference(trial1, trial2, trial_history):
             selected = 0
         elif x_axis > 0.5:
             selected = 1
+
+        if joystick.get_button(2):
+            current_params = trial_history[trial1] if selected == 0 else trial_history[trial2]
+
+            pygame.display.quit()
+            pygame.quit()
+
+            from simple_tracking_task import TrackingTask
+            task = TrackingTask(
+                duration=10,
+                sampling_rate=20,
+                friction=current_params['friction'],
+                speed_factor=current_params['speed_factor'],
+                enable_bezier=False
+            )
+            task.run(test_env=False)
+
+            pygame.init()
+            pygame.joystick.init()
+            screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+            width, height = screen.get_size()
+
+            font = pygame.font.Font(None, 48)
+            hint_font = pygame.font.Font(None, 36)
+            title_font = pygame.font.Font(None, 64)
+
+            time.sleep(0.5)
+            continue
 
         if joystick.get_button(0):
             pygame.quit()
@@ -63,7 +92,7 @@ def get_user_preference(trial1, trial2, trial_history):
         screen.blit(speed2_text, (x2 - speed2_text.get_width() // 2, height // 2 + 60))
         screen.blit(friction2_text, (x2 - friction2_text.get_width() // 2, height // 2 + 120))
 
-        hint_text = font.render("Use Joysticks to Select, Press A to Confirm", True, GRAY)
+        hint_text = hint_font.render("Use Joysticks to Select, Press A to Confirm, Press X to try", True, GRAY)
         screen.blit(hint_text, (width // 2 - hint_text.get_width() // 2, height * 5 // 6))
 
         pygame.display.flip()
