@@ -49,7 +49,7 @@ def run_physical_optimization():
     print("Note: Each trial will run a complete tracking task optimization\n")
     
     study = optuna.create_study(direction='maximize')
-    n_trials = 10  # Number of physical optimization trials
+    n_trials = 10
     
     for i in range(n_trials):
         print(f"\nStarting Physical Parameter Trial {i+1}/{n_trials}")
