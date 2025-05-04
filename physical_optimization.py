@@ -2,6 +2,7 @@ import optuna
 import time
 import tracking_op
 from tracking_op import run_tracking_optimization
+import switch_ui as su
 import numpy as np
 
 def physical_objective(trial):
@@ -45,8 +46,6 @@ def physical_objective(trial):
     return tracking_score
 
 def run_physical_optimization():
-    print("Starting Physical Parameter Optimization...")
-    print("Note: Each trial will run a complete tracking task optimization\n")
     
     study = optuna.create_study(direction='maximize')
     n_trials = 10
@@ -56,6 +55,17 @@ def run_physical_optimization():
         trial = study.ask()
         value = physical_objective(trial)
         study.tell(trial, value)
+        if i < n_trials - 1:
+            next_trial = study.ask()
+            if not su.show_switch_prompt(
+                next_trial.params['keycap_type'],
+                next_trial.params['rocker_length'],
+                next_trial.params['cap_size']
+            ):
+                print("Optimization cancelled by user")
+                break
+            study.tell(next_trial, 0)
+            study.trials.pop()
     
     print("\n" + "="*50)
     print("Physical Parameter Optimization Complete!")

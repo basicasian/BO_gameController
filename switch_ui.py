@@ -63,8 +63,6 @@ if __name__ == "__main__":
         print("Error: No game controller detected!")
         pygame.quit()
         exit()
-        
-    print("Testing switch UI...")
     
     test_params = [
         (0, 25.0, 30.0),
