@@ -58,13 +58,16 @@ def tracking_objective(trial, pref_model, trial_history):
 
         if i == 4:
             current_avg = sum(scores) / 5
+            print(f"CurrentAvg: {current_avg}")
+            if current_avg < 0.2:
+                return 0.0
 
             previous_scores = [t.value for t in trial.study.trials if t.value is not None]
             if previous_scores:
                 prev_mean = np.mean(previous_scores)
                 prev_std = np.std(previous_scores)
                 
-                if current_avg < (prev_mean - prev_std):
+                if current_avg < (prev_mean - prev_std) or current_avg < 0.2:
                     print(f"\nEarly stopping: Current avg ({current_avg:.4f}) is significantly lower than historical performance (mean: {prev_mean:.4f}, std: {prev_std:.4f})")
                     return 0.0
 
@@ -153,7 +156,7 @@ def run_verification_trial(params):
 
     return task.run(test_env=False)
 
-def run_tracking_optimization(pair_mode=False, similar_comparison=False):
+def run_tracking_optimization(pair_mode=False, similar_comparison=False, physical_comparison=False):
     n_trials = 15
     
     study = optuna.create_study(direction='maximize')
@@ -174,6 +177,9 @@ def run_tracking_optimization(pair_mode=False, similar_comparison=False):
         
         value = tracking_objective(trial, pref_model, trial_history)
         study.tell(trial, value)
+
+    best_params = study.best_params
+    best_score = study.best_value
     
     print("\n" + "="*50)
     print(f"  speed_factor: {study.best_params['speed_factor']:.2f}")
@@ -181,6 +187,9 @@ def run_tracking_optimization(pair_mode=False, similar_comparison=False):
     print(f"Best Score: {study.best_value:.4f}")
     print("="*50)
 
+    if physical_comparison:
+        return (best_score, best_params)
+        
     save_results = input("\nSave? (y/n): ").lower() == 'y'
     if save_results:
         timestamp = time.strftime("%Y%m%d-%H%M%S")
