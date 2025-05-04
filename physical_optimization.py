@@ -46,26 +46,32 @@ def physical_objective(trial):
     return tracking_score
 
 def run_physical_optimization():
-    
     study = optuna.create_study(direction='maximize')
     n_trials = 10
+
+    current_trial = study.ask()
+    keycap_type = current_trial.suggest_int('keycap_type', 0, 4)
+    rocker_length = current_trial.suggest_float('rocker_length', 5.0, 50.0)
+    cap_size = current_trial.suggest_float('cap_size', 6.0, 57.0)
+
+    if not su.show_switch_prompt(keycap_type, rocker_length, cap_size):
+        print("Optimization cancelled by user")
+        return
     
     for i in range(n_trials):
         print(f"\nStarting Physical Parameter Trial {i+1}/{n_trials}")
-        trial = study.ask()
-        value = physical_objective(trial)
-        study.tell(trial, value)
+
+        value = physical_objective(current_trial)
+        study.tell(current_trial, value)
         if i < n_trials - 1:
-            next_trial = study.ask()
-            if not su.show_switch_prompt(
-                next_trial.params['keycap_type'],
-                next_trial.params['rocker_length'],
-                next_trial.params['cap_size']
-            ):
+            current_trial = study.ask()
+            keycap_type = current_trial.suggest_int('keycap_type', 0, 4)
+            rocker_length = current_trial.suggest_float('rocker_length', 5.0, 50.0)
+            cap_size = current_trial.suggest_float('cap_size', 6.0, 57.0)
+            
+            if not su.show_switch_prompt(keycap_type, rocker_length, cap_size):
                 print("Optimization cancelled by user")
                 break
-            study.tell(next_trial, 0)
-            study.trials.pop()
     
     print("\n" + "="*50)
     print("Physical Parameter Optimization Complete!")
