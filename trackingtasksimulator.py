@@ -11,7 +11,7 @@ import time
 def main(task_num=30):
     scores = []
     for t in range(task_num):
-        task = TrackingTask(duration=15, sampling_rate=20, friction=0.96, speed_factor=7.34, enable_bezier=False)
+        task = TrackingTask(duration=15, sampling_rate=20, friction=0.99, speed_factor=5.57, enable_bezier=False)
         results = task.run()
 
         error = ob.error_calc(results["distances"])
