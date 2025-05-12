@@ -211,6 +211,8 @@ class TrackingTask:
         self.start_time = None
         self.target_stay_time = 0
         self.last_in_target = False
+        self.jitter_count = 0  
+        self.has_entered_target = False
 
         self.keys = key.KeyStateHandler()
         self.window.push_handlers(self.keys)
@@ -277,8 +279,12 @@ class TrackingTask:
             else:
                 self.target_stay_time = 0
                 self.last_in_target = True
+                if not self.has_entered_target:
+                    self.has_entered_target = True
         else:
             self.target_stay_time = 0
+            if self.last_in_target and self.has_entered_target:
+                self.jitter_count += 1 
             self.last_in_target = False
 
         if self.target_stay_time >= 1.0:
@@ -311,7 +317,8 @@ class TrackingTask:
         return {
             "first_entry_time": self.first_target_entry_time,
             "sampling_times": self.sampling_times,
-            "distances": self.distances
+            "distances": self.distances,
+            "jitter": self.jitter_count 
         }
 
 def main():
@@ -323,10 +330,11 @@ def main():
     results = task.run()
 
     print(f"Task duration: {results['sampling_times'][-1]:.3f} seconds")
-    print(f"num of samples: {len(results['distances'])}")
-    print(f"average distance: {np.mean(results['distances']):.3f}")
-    print(f"max distance: {np.max(results['distances']):.3f}")
-    print(f"min distance: {np.min(results['distances']):.3f}")
+    print(f"Number of samples: {len(results['distances'])}")
+    print(f"Average distance: {np.mean(results['distances']):.3f}")
+    print(f"Max distance: {np.max(results['distances']):.3f}")
+    print(f"Min distance: {np.min(results['distances']):.3f}")
+    print(f"Jitter count: {results['jitter']}")
 
 
 if __name__ == "__main__":

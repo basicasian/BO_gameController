@@ -152,9 +152,9 @@ class AimingTask:
         if pygame.joystick.get_count() > 0:
             self.joystick = pygame.joystick.Joystick(0)
             self.joystick.init()
-            print(f"检测到手柄: {self.joystick.get_name()}")
+            print(f"Detected Joystick: {self.joystick.get_name()}")
         else:
-            print("未检测到手柄")
+            print("No Joystick Detected:")
 
         display = pyglet.canvas.get_display()
         screens = display.get_screens()
@@ -177,7 +177,7 @@ class AimingTask:
         self.distances = []
         self.sampling_times = []
         self.start_time = None
-        self.a_button_presses = 0
+        self.a_button_presses = -1
         self.a_button_pressed = False
 
         self.keys = key.KeyStateHandler()
@@ -248,8 +248,7 @@ class AimingTask:
                     self.on_experiment_end()
                 pyglet.app.exit()
                 return
-        
-        # 更新按键状态
+
         self.a_button_pressed = current_a_pressed
 
         self.reticle.update(dt, joystick_x, joystick_y)
@@ -294,7 +293,7 @@ def main():
     if results["completion_time"] is not None:
         print(f"Task Time: {results['completion_time']:.3f} s")
         print(f"Final Distance: {results['final_distance']:.3f}")
-        print(f"A Button Presses Num: {results['a_button_presses']}")
+        print(f"Miss Aiming: {results['a_button_presses']}")
     else:
         print("Task not completed")
     print(f"Sample count: {len(results['distances'])}")

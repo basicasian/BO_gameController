@@ -6,6 +6,7 @@ import time
 import pygame
 import numpy as np
 from selectUI import get_user_preference
+from task_switcher import TaskSwitcher, TaskType
 
 pygame.init()
 pygame.joystick.init()
@@ -33,19 +34,19 @@ def tracking_objective(trial, pref_model, trial_history):
     print("="*50)
 
     scores = []
+    switcher = TaskSwitcher()
+    
     for i in range(20):
         print(f"\nSample {i+1}/20")
-        task = TrackingTask(duration=15, sampling_rate=20, enable_bezier=False)
-        task.reticle.friction = friction
-        task.reticle.speed_factor = speed_factor
+        params = {
+            "duration": 15,
+            "sampling_rate": 20,
+            "friction": friction,
+            "speed_factor": speed_factor,
+            "enable_bezier": False
+        }
         
-        def on_experiment_end():
-            task.window.close()
-            pyglet.app.exit()
-        task.on_experiment_end = on_experiment_end
-        task.update = task.update
-
-        results = task.run(test_env=False)
+        results = switcher.run_task(TaskType.TRACKING, params)
         
         error = error_calc(results["distances"])
         moving_time = results['sampling_times'][-1]
@@ -144,17 +145,13 @@ def tracking_objective(trial, pref_model, trial_history):
     return objective_score
 
 def run_verification_trial(params):
-    task = TrackingTask(duration=10, sampling_rate=20, enable_bezier=False)  # 缩短验证时间
-    task.reticle.friction = params['friction']
-    task.reticle.speed_factor = params['speed_factor']
-    
-    def on_experiment_end():
-        task.window.close()
-        pyglet.app.exit()
-    task.on_experiment_end = on_experiment_end
-    task.update = task.update
-
-    return task.run(test_env=False)
+    switcher = TaskSwitcher()
+    params.update({
+        "duration": 10,
+        "sampling_rate": 20,
+        "enable_bezier": False
+    })
+    return switcher.run_task(TaskType.TRACKING, params)
 
 def run_tracking_optimization(pair_mode=False, similar_comparison=False, physical_comparison=False):
     n_trials = 15
