@@ -35,7 +35,7 @@ def tracking_objective(trial, pref_model, trial_history):
 
     scores = []
     switcher = TaskSwitcher()
-    
+
     for i in range(20):
         print(f"\nSample {i+1}/20")
         params = {
@@ -43,18 +43,17 @@ def tracking_objective(trial, pref_model, trial_history):
             "sampling_rate": 20,
             "friction": friction,
             "speed_factor": speed_factor,
-            "enable_bezier": False
         }
-        
-        results = switcher.run_task(TaskType.TRACKING, params)
-        
+
+        results = switcher.run_task(TaskType.AIMING, params)
+
         error = error_calc(results["distances"])
         moving_time = results['sampling_times'][-1]
 
         perf_model = PerformanceModel()
         score = perf_model.compute_performance(error, moving_time)
         scores.append(score)
-        
+
         print(f"Sample Score: {score:.4f}")
 
         if i == 4:
@@ -67,7 +66,7 @@ def tracking_objective(trial, pref_model, trial_history):
             if previous_scores:
                 prev_mean = np.mean(previous_scores)
                 prev_std = np.std(previous_scores)
-                
+
                 if current_avg < (prev_mean - prev_std) or current_avg < 0.2:
                     print(f"\nEarly stopping: Current avg ({current_avg:.4f}) is significantly lower than historical performance (mean: {prev_mean:.4f}, std: {prev_std:.4f})")
                     return 0.0
@@ -85,7 +84,6 @@ def tracking_objective(trial, pref_model, trial_history):
                   f"friction={trial_history[-1]['friction']:.3f}")
             print(f"Current parameters: speed_factor={speed_factor:.2f}, "
                   f"friction={friction:.3f}")
-            # Replace the input() with get_user_preference
             is_better = get_user_preference(trial.number-1, trial.number, trial_history) == "1"
             pref_model.add_comparison(trial.number, is_better)
     else:
@@ -106,7 +104,7 @@ def tracking_objective(trial, pref_model, trial_history):
         for pair1, pair2 in similar_pairs:
             if (pair1, pair2) not in pref_model.similar_pairs:
                 print(f"Similar preferences between Trial {pair1} and Trial {pair2}")
-                
+
                 for i in range(3):
                     print(f"\nVerification round {i+1}/3:")
 
@@ -116,7 +114,7 @@ def tracking_objective(trial, pref_model, trial_history):
                     run_verification_trial(trial_history[pair1])
 
                 time.sleep(1)
-                    
+
                 for i in range(3):
                     print(f"\nTesting Trial {pair2}...")
                     print(f"Parameters: speed_factor={trial_history[pair2]['speed_factor']:.2f}, "
@@ -124,14 +122,14 @@ def tracking_objective(trial, pref_model, trial_history):
                     run_verification_trial(trial_history[pair2])
 
                 is_better = get_user_preference(pair1, pair2, trial_history)
-                
+
                 if is_better == "1":
                     print(f"\nVerification result: Trial {pair1} is better than Trial {pair2}")
                     pref_model.verify_similar_pair(pair1, pair2)
                 else:
                     print(f"\nVerification result: Trial {pair2} is better than Trial {pair1}")
                     pref_model.verify_similar_pair(pair2, pair1)
-                
+
                 pref_model.similar_pairs.append((pair1, pair2))
                 pref_model.fit(pref_model.comparison_history)
 
@@ -151,33 +149,33 @@ def run_verification_trial(params):
         "sampling_rate": 20,
         "enable_bezier": False
     })
-    return switcher.run_task(TaskType.TRACKING, params)
+    return switcher.run_task(TaskType.AIMING, params)
 
 def run_tracking_optimization(pair_mode=False, similar_comparison=False, physical_comparison=False):
     n_trials = 15
-    
+
     study = optuna.create_study(direction='maximize')
     pref_model = PreferenceModel(n_trials, pair=pair_mode, similar_comparison=similar_comparison)
     trial_history = []
-    
+
     for i in range(n_trials):
         trial = study.ask()
-        
+
         speed_factor = trial.suggest_float('speed_factor', 1.0, 10.0)
         friction = trial.suggest_float('friction', 0.93, 0.9999)
-        
+
         params = {
             'speed_factor': speed_factor,
             'friction': friction
         }
         trial_history.append(params)
-        
+
         value = tracking_objective(trial, pref_model, trial_history)
         study.tell(trial, value)
 
     best_params = study.best_params
     best_score = study.best_value
-    
+
     print("\n" + "="*50)
     print(f"  speed_factor: {study.best_params['speed_factor']:.2f}")
     print(f"  friction: {study.best_params['friction']:.3f}")
@@ -186,13 +184,13 @@ def run_tracking_optimization(pair_mode=False, similar_comparison=False, physica
 
     if physical_comparison:
         return (best_score, best_params)
-        
+
     save_results = input("\nSave? (y/n): ").lower() == 'y'
     if save_results:
         timestamp = time.strftime("%Y%m%d-%H%M%S")
-        filename = f"tracking_optimization_{timestamp}.txt"
+        filename = f"optimization_{timestamp}.txt"
         with open(filename, 'w') as f:
-            f.write("Tracking BO Results:\n")
+            f.write("BO Results:\n")
             f.write("Best Para:\n")
             for param_name, param_value in study.best_params.items():
                 f.write(f"  {param_name}: {param_value}\n")

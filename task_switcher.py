@@ -8,9 +8,7 @@ from simple_aiming_task import AimingTask
 class TaskType(Enum):
     TRACKING = "tracking"
     AIMING = "aiming"
-    TRACKING_OPTIMIZATION = "tracking_optimization"
-    PHYSICAL_OPTIMIZATION = "physical_optimization"
-    TRACKING_SIMULATOR = "tracking_simulator"
+
 
 class TaskSwitcher:
     def __init__(self):
@@ -28,15 +26,6 @@ class TaskSwitcher:
                 "friction": 0.94,
                 "speed_factor": 9
             },
-            TaskType.TRACKING_OPTIMIZATION: {
-                "pair_mode": True,
-                "similar_comparison": True,
-                "physical_comparison": False
-            },
-            TaskType.PHYSICAL_OPTIMIZATION: {},
-            TaskType.TRACKING_SIMULATOR: {
-                "task_num": 20
-            }
         }
 
     def run_task(self, task_type: TaskType, params: Optional[Dict[str, Any]] = None) -> Any:
@@ -52,7 +41,6 @@ class TaskSwitcher:
         if params is None:
             params = self.default_params[task_type].copy()
         else:
-            # 合并默认参数和用户提供的参数
             merged_params = self.default_params[task_type].copy()
             merged_params.update(params)
             params = merged_params
