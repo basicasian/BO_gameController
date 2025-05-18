@@ -62,6 +62,15 @@ def tracking_objective(trial, pref_model, trial_history):
             current_avg = sum(scores) / 5
             print(f"CurrentAvg: {current_avg}")
             if current_avg < 0.2:
+                print(f"\nEarly stopping: Current average ({current_avg:.4f}) is too low")
+                detailed_scores[trial.number] = {
+                    'accuracy_scores': [],
+                    'time_scores': [],
+                    'performance_scores': scores,
+                    'avg_accuracy': 0.0,
+                    'avg_time': 0.0,
+                    'avg_performance': 0.0
+                }
                 return 0.0
 
             previous_scores = [t.value for t in trial.study.trials if t.value is not None]
@@ -71,6 +80,14 @@ def tracking_objective(trial, pref_model, trial_history):
 
                 if current_avg < (prev_mean - prev_std) or current_avg < 0.2:
                     print(f"\nEarly stopping: Current avg ({current_avg:.4f}) is significantly lower than historical performance (mean: {prev_mean:.4f}, std: {prev_std:.4f})")
+                    detailed_scores[trial.number] = {
+                        'accuracy_scores': [],
+                        'time_scores': [],
+                        'performance_scores': scores,
+                        'avg_accuracy': 0.0,
+                        'avg_time': 0.0,
+                        'avg_performance': 0.0
+                    }
                     return 0.0
 
     final_scores = scores[10:]
@@ -154,25 +171,129 @@ def run_verification_trial(params):
 
 def run_tracking_optimization(pair_mode=False, similar_comparison=False, physical_comparison=False):
     n_trials = 15
+    n_initial_samples = 5
+    n_repeats = 5
 
     study = optuna.create_study(direction='maximize')
     pref_model = PreferenceModel(n_trials, pair=pair_mode, similar_comparison=similar_comparison)
     trial_history = []
+    detailed_scores = {}
 
-    for i in range(n_trials):
+    print("\n=== Initializing ===")
+    initial_params = []
+    for _ in range(n_initial_samples):
+        speed_factor = np.random.uniform(1.0, 10.0)
+        friction = np.random.uniform(0.93, 0.9999)
+        initial_params.append({
+            'speed_factor': speed_factor,
+            'friction': friction
+        })
+
+    for i, params in enumerate(initial_params):
+        print(f"\nInitial Sample #{i+1}/{n_initial_samples}")
+        print(f"Speed Factor: {params['speed_factor']:.2f}")
+        print(f"Friction: {params['friction']:.3f}")
+
         trial = study.ask()
+        trial.suggest_float('speed_factor', params['speed_factor'], params['speed_factor'])
+        trial.suggest_float('friction', params['friction'], params['friction'])
 
+        trial_history.append(params)
+
+        sample_scores = []
+        accuracy_scores = []
+        time_scores = []
+        performance_scores = []
+        switcher = TaskSwitcher()
+        
+        for j in range(n_repeats):
+            print(f"\nRe:  #{j+1}/{n_repeats}")
+            task_params = {
+                "duration": 15,
+                "sampling_rate": 20,
+                "friction": params['friction'],
+                "speed_factor": params['speed_factor']
+            }
+            
+            results = switcher.run_task(TaskType.AIMING, task_params)
+            
+            error = error_calc(results["distances"])
+            moving_time = results['sampling_times'][-1]
+            jitter = results["jitter"]
+            
+            perf_model = PerformanceModel()
+            accuracy_score = perf_model.compute_accuracy(error)
+            time_score = perf_model.compute_time(moving_time)
+            performance_score = perf_model.compute_performance(error, moving_time, jitter)
+            
+            accuracy_scores.append(accuracy_score)
+            time_scores.append(time_score)
+            performance_scores.append(performance_score)
+            sample_scores.append(performance_score)
+            
+            print(f"Score{performance_score:.4f}")
+
+        avg_score = np.mean(sample_scores)
+        print(f"\nAVG SCORE: {avg_score:.4f}")
+        study.tell(trial, avg_score)
+
+        detailed_scores[trial.number] = {
+            'accuracy_scores': accuracy_scores,
+            'time_scores': time_scores,
+            'performance_scores': performance_scores,
+            'avg_accuracy': np.mean(accuracy_scores),
+            'avg_time': np.mean(time_scores),
+            'avg_performance': avg_score
+        }
+
+    print("\n=== INITIALIZING RESULTS ===")
+    for i, trial in enumerate(study.trials[:n_initial_samples]):
+        print(f"SAMPLE #{i+1}: speed_factor={trial.params['speed_factor']:.2f}, "
+              f"friction={trial.params['friction']:.3f}, score={trial.value:.4f}")
+
+    for i in range(n_trials - n_initial_samples):
+        trial = study.ask()
+        
         speed_factor = trial.suggest_float('speed_factor', 1.0, 10.0)
         friction = trial.suggest_float('friction', 0.93, 0.9999)
-
+        
         params = {
             'speed_factor': speed_factor,
             'friction': friction
         }
         trial_history.append(params)
-
+        
         value = tracking_objective(trial, pref_model, trial_history)
         study.tell(trial, value)
+
+        scores = []
+        accuracy_scores = []
+        time_scores = []
+        performance_scores = []
+        
+        for _ in range(20):
+            results = switcher.run_task(TaskType.AIMING, params)
+            error = error_calc(results["distances"])
+            moving_time = results['sampling_times'][-1]
+            jitter = results["jitter"]
+            
+            perf_model = PerformanceModel()
+            accuracy_score = perf_model.compute_accuracy(error)
+            time_score = perf_model.compute_time(moving_time)
+            performance_score = perf_model.compute_performance(error, moving_time, jitter)
+            
+            accuracy_scores.append(accuracy_score)
+            time_scores.append(time_score)
+            performance_scores.append(performance_score)
+        
+        detailed_scores[trial.number] = {
+            'accuracy_scores': accuracy_scores,
+            'time_scores': time_scores,
+            'performance_scores': performance_scores,
+            'avg_accuracy': np.mean(accuracy_scores),
+            'avg_time': np.mean(time_scores),
+            'avg_performance': np.mean(performance_scores[10:])  # 与tracking_objective一致
+        }
 
     best_params = study.best_params
     best_score = study.best_value
@@ -200,16 +321,30 @@ def run_tracking_optimization(pair_mode=False, similar_comparison=False, physica
             f.write("\nAll Trial:\n")
             for trial in study.trials:
                 f.write(f"Trial #{trial.number}:\n")
+                f.write("Parameters:\n")
                 for param_name, param_value in trial.params.items():
                     f.write(f"  {param_name}: {param_value}\n")
-                f.write(f"  Score: {trial.value}\n\n")
+                
+                # 使用已记录的详细分数
+                trial_scores = detailed_scores[trial.number]
+                f.write("Scores:\n")
+                f.write(f"  Accuracy Score: {trial_scores['avg_accuracy']:.4f}\n")
+                f.write(f"  Time Score: {trial_scores['avg_time']:.4f}\n")
+                f.write(f"  Performance Score: {trial_scores['avg_performance']:.4f}\n")
+                
+                if pref_model.utilities is not None:
+                    pref_score = pref_model.utilities[trial.number]
+                    f.write(f"  Preference Score: {pref_score:.4f}\n")
+                
+                f.write(f"  Final Score: {trial.value:.4f}\n\n")
             
             f.write("\nPreference Data:\n")
             if pair_mode:
                 f.write("Pairwise comparisons:\n")
                 for comp in pref_model.comparison_history:
                     f.write(f"  Trial {comp[0]} {'>' if comp[1] else '<'} Trial {comp[1]}\n")
-            f.write(f"Final utilities: {pref_model.utilities.tolist()}\n")
+            if pref_model.utilities is not None:
+                f.write(f"Final utilities: {pref_model.utilities.tolist()}\n")
                 
         print(f"Result saved to {filename}")
 

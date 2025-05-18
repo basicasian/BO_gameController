@@ -197,6 +197,12 @@ class PerformanceModel:
         self.lam = 1.0
         self.alpha = 0.5
 
+    def compute_accuracy(self, error):
+        return accuracy(error, self.lam)
+
+    def compute_time(self, moving_time, jitter=1):
+        return res_speed(moving_time, jitter, self.alpha)
+
     def compute_performance(self, error, moving_time, jitter=1):
         acc = accuracy(error, self.lam)
         speed = res_speed(moving_time, jitter, self.alpha)
