@@ -1,8 +1,9 @@
 import pygame
 import time
+from task_switcher import TaskSwitcher, TaskType
 
 
-def get_user_preference(trial1, trial2, trial_history):
+def get_user_preference(trial1, trial2, trial_history, task_type=TaskType.AIMING):
     pygame.init()
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     width, height = screen.get_size()
@@ -42,15 +43,14 @@ def get_user_preference(trial1, trial2, trial_history):
             pygame.display.quit()
             pygame.quit()
 
-            from simple_tracking_task import TrackingTask
-            task = TrackingTask(
-                duration=10,
-                sampling_rate=20,
-                friction=current_params['friction'],
-                speed_factor=current_params['speed_factor'],
-                enable_bezier=False
-            )
-            task.run(test_env=False)
+            switcher = TaskSwitcher()
+            params = {
+                "duration": 10,
+                "sampling_rate": 20,
+                "friction": current_params['friction'],
+                "speed_factor": current_params['speed_factor'],
+            }
+            switcher.run_task(task_type, params)
 
             pygame.init()
             pygame.joystick.init()

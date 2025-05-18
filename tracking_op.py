@@ -11,6 +11,8 @@ from task_switcher import TaskSwitcher, TaskType
 pygame.init()
 pygame.joystick.init()
 
+detailed_scores = {}
+
 if pygame.joystick.get_count() > 0:
     joystick = pygame.joystick.Joystick(0)
     joystick.init()
@@ -19,7 +21,8 @@ else:
     print("No Joystick Detected")
     pygame.quit()
 
-def tracking_objective(trial, pref_model, trial_history):
+def tracking_objective(trial, pref_model, trial_history, task_type=TaskType.AIMING):
+    global detailed_scores  
 
     if not joystick:
         print("No Joystick Detected")
@@ -46,7 +49,7 @@ def tracking_objective(trial, pref_model, trial_history):
             "speed_factor": speed_factor,
         }
 
-        results = switcher.run_task(TaskType.AIMING, params)
+        results = switcher.run_task(task_type, params)  # Use the task_type parameter here
 
         error = error_calc(results["distances"])
         moving_time = results['sampling_times'][-1]
@@ -103,7 +106,7 @@ def tracking_objective(trial, pref_model, trial_history):
                   f"friction={trial_history[-1]['friction']:.3f}")
             print(f"Current parameters: speed_factor={speed_factor:.2f}, "
                   f"friction={friction:.3f}")
-            is_better = get_user_preference(trial.number-1, trial.number, trial_history) == "1"
+            is_better = get_user_preference(trial.number-1, trial.number, trial_history, TaskType.AIMING) == "1"
             pref_model.add_comparison(trial.number, is_better)
     else:
         if trial.number % 5 == 4:
@@ -140,7 +143,7 @@ def tracking_objective(trial, pref_model, trial_history):
                           f"friction={trial_history[pair2]['friction']:.3f}")
                     run_verification_trial(trial_history[pair2])
 
-                is_better = get_user_preference(pair1, pair2, trial_history)
+                is_better = get_user_preference(pair1, pair2, trial_history, TaskType.AIMING)
 
                 if is_better == "1":
                     print(f"\nVerification result: Trial {pair1} is better than Trial {pair2}")
@@ -169,7 +172,7 @@ def run_verification_trial(params):
     })
     return switcher.run_task(TaskType.AIMING, params)
 
-def run_tracking_optimization(pair_mode=False, similar_comparison=False, physical_comparison=False):
+def run_tracking_optimization(pair_mode=False, similar_comparison=False, physical_comparison=False, task_type=TaskType.AIMING):
     n_trials = 15
     n_initial_samples = 5
     n_repeats = 5
@@ -215,7 +218,7 @@ def run_tracking_optimization(pair_mode=False, similar_comparison=False, physica
                 "speed_factor": params['speed_factor']
             }
             
-            results = switcher.run_task(TaskType.AIMING, task_params)
+            results = switcher.run_task(task_type, task_params)
             
             error = error_calc(results["distances"])
             moving_time = results['sampling_times'][-1]
@@ -263,8 +266,12 @@ def run_tracking_optimization(pair_mode=False, similar_comparison=False, physica
         }
         trial_history.append(params)
         
-        value = tracking_objective(trial, pref_model, trial_history)
+        value = tracking_objective(trial, pref_model, trial_history, task_type)
         study.tell(trial, value)
+
+        # 如果是early stop，跳过后续的评分计算
+        if value == 0.0:
+            continue
 
         scores = []
         accuracy_scores = []
@@ -272,7 +279,7 @@ def run_tracking_optimization(pair_mode=False, similar_comparison=False, physica
         performance_scores = []
         
         for _ in range(20):
-            results = switcher.run_task(TaskType.AIMING, params)
+            results = switcher.run_task(task_type, params)
             error = error_calc(results["distances"])
             moving_time = results['sampling_times'][-1]
             jitter = results["jitter"]
@@ -324,8 +331,6 @@ def run_tracking_optimization(pair_mode=False, similar_comparison=False, physica
                 f.write("Parameters:\n")
                 for param_name, param_value in trial.params.items():
                     f.write(f"  {param_name}: {param_value}\n")
-                
-                # 使用已记录的详细分数
                 trial_scores = detailed_scores[trial.number]
                 f.write("Scores:\n")
                 f.write(f"  Accuracy Score: {trial_scores['avg_accuracy']:.4f}\n")
@@ -349,4 +354,4 @@ def run_tracking_optimization(pair_mode=False, similar_comparison=False, physica
         print(f"Result saved to {filename}")
 
 if __name__ == "__main__":
-    run_tracking_optimization(pair_mode=True, similar_comparison=True)
+    run_tracking_optimization(pair_mode=True, similar_comparison=True, task_type=TaskType.AIMING)
