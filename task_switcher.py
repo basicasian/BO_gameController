@@ -18,7 +18,7 @@ class TaskSwitcher:
                 "sampling_rate": 20,
                 "friction": 0.94,
                 "speed_factor": 9,
-                "enable_bezier": True
+                "enable_bezier": False
             },
             TaskType.AIMING: {
                 "duration": 15,

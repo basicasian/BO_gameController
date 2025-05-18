@@ -10,8 +10,8 @@ def accuracy(error, lam):
     return np.exp(-lam * error ** 2)
 
 
-def res_speed(moving_time, jitter=0, alpha=0.5):
-    return 1 / (moving_time + alpha * jitter)
+def res_speed(moving_time, jitter=1, alpha=0.5):
+    return 1 / (moving_time + alpha * (jitter-1))
 
 
 def error_calc(dis: list, scale: float = 0.02):
@@ -197,7 +197,7 @@ class PerformanceModel:
         self.lam = 1.0
         self.alpha = 0.5
 
-    def compute_performance(self, error, moving_time, jitter=0):
+    def compute_performance(self, error, moving_time, jitter=1):
         acc = accuracy(error, self.lam)
         speed = res_speed(moving_time, jitter, self.alpha)
         return f_perf(acc, speed)

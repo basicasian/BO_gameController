@@ -20,6 +20,7 @@ else:
     pygame.quit()
 
 def tracking_objective(trial, pref_model, trial_history):
+
     if not joystick:
         print("No Joystick Detected")
         return 0.0
@@ -49,9 +50,10 @@ def tracking_objective(trial, pref_model, trial_history):
 
         error = error_calc(results["distances"])
         moving_time = results['sampling_times'][-1]
+        jitter = results["jitter"]
 
         perf_model = PerformanceModel()
-        score = perf_model.compute_performance(error, moving_time)
+        score = perf_model.compute_performance(error, moving_time, jitter)
         scores.append(score)
 
         print(f"Sample Score: {score:.4f}")
@@ -147,7 +149,6 @@ def run_verification_trial(params):
     params.update({
         "duration": 10,
         "sampling_rate": 20,
-        "enable_bezier": False
     })
     return switcher.run_task(TaskType.AIMING, params)
 

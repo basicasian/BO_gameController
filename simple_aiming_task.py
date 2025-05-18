@@ -274,13 +274,18 @@ class AimingTask:
 
             self.window.close()
 
+        if self.final_distance is None:
+            self.final_distance = 1000
+
+        self.final_distance = [self.final_distance]
+
         return {
             "initial_distance": self.initial_distance,
             "completion_time": self.completion_time,
             "final_distance": self.final_distance,
             "sampling_times": self.sampling_times,
-            "distances": self.distances,
-            "a_button_presses": self.a_button_presses
+            "distances": self.final_distance,  # use final distance
+            "jitter": self.a_button_presses
         }
 
 def main():
@@ -292,8 +297,8 @@ def main():
 
     if results["completion_time"] is not None:
         print(f"Task Time: {results['completion_time']:.3f} s")
-        print(f"Final Distance: {results['final_distance']:.3f}")
-        print(f"Miss Aiming: {results['a_button_presses']}")
+        print(f"Final Distance: {results['final_distance'][0]:.3f}")
+        print(f"Miss Aiming: {results['jitter']}")
     else:
         print("Task not completed")
     print(f"Sample count: {len(results['distances'])}")
