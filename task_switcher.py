@@ -4,10 +4,12 @@ from typing import Dict, Any, Optional, Tuple
 
 from simple_tracking_task import TrackingTask
 from simple_aiming_task import AimingTask
+from path_tracking import PathTrackingTask
 
 class TaskType(Enum):
     TRACKING = "tracking"
     AIMING = "aiming"
+    PATH_TRACKING = "path_tracking"
 
 
 class TaskSwitcher:
@@ -21,6 +23,12 @@ class TaskSwitcher:
                 "enable_bezier": False
             },
             TaskType.AIMING: {
+                "duration": 15,
+                "sampling_rate": 20,
+                "friction": 0.94,
+                "speed_factor": 9
+            },
+            TaskType.PATH_TRACKING: {
                 "duration": 15,
                 "sampling_rate": 20,
                 "friction": 0.94,
@@ -58,13 +66,19 @@ class TaskSwitcher:
         elif task_type == TaskType.AIMING:
             task = AimingTask(**params)
             return task.run()
-
+            
+        elif task_type == TaskType.PATH_TRACKING:
+            task = PathTrackingTask(**params)
+            return task.run()
         
         else:
             raise ValueError(f"Unknown task type: {task_type}")
 
 def main():
     switcher = TaskSwitcher()
+    
+    results = switcher.run_task(TaskType.PATH_TRACKING)
+    print("Path tracking task results:", results)
     
     results = switcher.run_task(TaskType.TRACKING)
     print("Tracking task results:", results)

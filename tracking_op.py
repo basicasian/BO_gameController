@@ -173,7 +173,7 @@ def run_verification_trial(params):
     return switcher.run_task(TaskType.AIMING, params)
 
 def run_tracking_optimization(pair_mode=False, similar_comparison=False, physical_comparison=False, task_type=TaskType.AIMING):
-    n_trials = 15
+    n_trials = 10
     n_initial_samples = 5
     n_repeats = 5
 
@@ -269,7 +269,6 @@ def run_tracking_optimization(pair_mode=False, similar_comparison=False, physica
         value = tracking_objective(trial, pref_model, trial_history, task_type)
         study.tell(trial, value)
 
-        # 如果是early stop，跳过后续的评分计算
         if value == 0.0:
             continue
 
