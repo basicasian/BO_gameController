@@ -106,7 +106,7 @@ def tracking_objective(trial, pref_model, trial_history, task_type=TaskType.AIMI
                   f"friction={trial_history[-1]['friction']:.3f}")
             print(f"Current parameters: speed_factor={speed_factor:.2f}, "
                   f"friction={friction:.3f}")
-            is_better = get_user_preference(trial.number-1, trial.number, trial_history, TaskType.AIMING) == "1"
+            is_better = get_user_preference(trial.number-1, trial.number, trial_history, task_type) == "1"
             pref_model.add_comparison(trial.number, is_better)
     else:
         if trial.number % 5 == 4:
@@ -133,7 +133,7 @@ def tracking_objective(trial, pref_model, trial_history, task_type=TaskType.AIMI
                     print(f"\nTesting Trial {pair1}...")
                     print(f"Parameters: speed_factor={trial_history[pair1]['speed_factor']:.2f}, "
                           f"friction={trial_history[pair1]['friction']:.3f}")
-                    run_verification_trial(trial_history[pair1])
+                    run_verification_trial(trial_history[pair1], task_type)
 
                 time.sleep(1)
 
@@ -141,7 +141,7 @@ def tracking_objective(trial, pref_model, trial_history, task_type=TaskType.AIMI
                     print(f"\nTesting Trial {pair2}...")
                     print(f"Parameters: speed_factor={trial_history[pair2]['speed_factor']:.2f}, "
                           f"friction={trial_history[pair2]['friction']:.3f}")
-                    run_verification_trial(trial_history[pair2])
+                    run_verification_trial(trial_history[pair2], task_type)
 
                 is_better = get_user_preference(pair1, pair2, trial_history, TaskType.AIMING)
 
@@ -164,13 +164,13 @@ def tracking_objective(trial, pref_model, trial_history, task_type=TaskType.AIMI
 
     return objective_score
 
-def run_verification_trial(params):
+def run_verification_trial(params, task_type):
     switcher = TaskSwitcher()
     params.update({
         "duration": 10,
         "sampling_rate": 20,
     })
-    return switcher.run_task(TaskType.AIMING, params)
+    return switcher.run_task(task_type, params)
 
 def run_tracking_optimization(pair_mode=False, similar_comparison=False, physical_comparison=False, task_type=TaskType.AIMING):
     n_trials = 10
@@ -353,4 +353,4 @@ def run_tracking_optimization(pair_mode=False, similar_comparison=False, physica
         print(f"Result saved to {filename}")
 
 if __name__ == "__main__":
-    run_tracking_optimization(pair_mode=True, similar_comparison=True, task_type=TaskType.AIMING)
+    run_tracking_optimization(pair_mode=True, similar_comparison=True, task_type=TaskType.TRACKING)
