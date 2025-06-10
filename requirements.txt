@@ -1,0 +1,10 @@
+numpy~=2.2.3
+scipy~=1.15.2
+pygame~=2.6.1
+matplotlib~=3.10.1
+optuna~=4.2.1
+scikit-learn~=1.6.1
+pandas~=2.2.3
+seaborn~=0.13.2
+pyglet~=1.5.26
+stable_baselines3~=2.5.0
