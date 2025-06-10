@@ -127,7 +127,7 @@ class PlackettLuce:
         return np.exp(result.x) 
 
 class PreferenceModel:
-    def __init__(self, n_candidates, pair=False, similar_comparison=False):
+    def __init__(self, n_candidates, pair=False, similar_comparison=False, fatigue_weight=0.2, confidence_weight=0.1):
         self.pl_model = PlackettLuce(n_candidates)
         self.utilities = None
         self.pair = pair
@@ -135,6 +135,8 @@ class PreferenceModel:
         self.n_candidates = n_candidates
         self.comparison_history = []
         self.similar_pairs = []
+        self.fatigue_weight = fatigue_weight
+        self.confidence_weight = confidence_weight
         
     def find_similar_preferences(self):
         if len(self.comparison_history) < 2:
@@ -174,14 +176,24 @@ class PreferenceModel:
         self.utilities = self.pl_model.fit(rankings)
         return self.utilities
 
-    def add_comparison(self, current_idx, is_better_than_previous):
-        """Add a new pairwise comparison result"""
+    def add_comparison(self, current_idx, is_better_than_previous, fatigue=None, confidence=None):
+        """Add a new pairwise comparison result with optional fatigue and confidence ratings"""
         if not self.pair:
             raise ValueError("This method is only available in pairwise mode")
         
         if current_idx > 0:  # Skip first item (baseline)
             prev_idx = current_idx - 1
-            if is_better_than_previous:
+            
+            w1 = self.fatigue_weight
+            w2 = self.confidence_weight
+            
+            if fatigue is not None and confidence is not None:
+                weighted_score = (1-w1-w2)*is_better_than_previous + w1*fatigue + w2*confidence
+                final_preference = weighted_score >= 0.5
+            else:
+                final_preference = is_better_than_previous
+            
+            if final_preference:
                 self.comparison_history.append((current_idx, prev_idx))
             else:
                 self.comparison_history.append((prev_idx, current_idx))

@@ -3,7 +3,7 @@ import time
 from task_switcher import TaskSwitcher, TaskType
 
 
-def get_user_preference(trial1, trial2, trial_history, task_type=TaskType.AIMING):
+def get_user_preference(trial1, trial2, trial_history, task_type=TaskType.AIMING, w1=0.2, w2=0.1):
     pygame.init()
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     width, height = screen.get_size()
@@ -100,7 +100,15 @@ def get_user_preference(trial1, trial2, trial_history, task_type=TaskType.AIMING
 
             if all(v is not None for v in preferences.values()):
                 pygame.quit()
-                return preferences['overall'], preferences
+                overall_val = 1 if preferences['overall'] == "1" else 0
+                fatigue_val = 1 if preferences['fatigue'] == "1" else 0
+                confidence_val = 1 if preferences['confidence'] == "1" else 0
+
+                weighted_score = (1-w1-w2)*overall_val + w1*fatigue_val + w2*confidence_val
+
+                final_choice = "1" if weighted_score >= 0.5 else "2"
+                
+                return final_choice, preferences
 
         screen.fill(WHITE)
 
@@ -185,6 +193,7 @@ if __name__ == "__main__":
 
     mock_history = create_mock_trial_history()
 
-    result, preferences = get_user_preference(0, 1, mock_history)
+    result, preferences = get_user_preference(0, 1, mock_history, w1=0.2, w2=0.1)
     print(f"Selected: {result}")
     print(f"All preferences: {preferences}")
+    print(f"Weights: w1(Fatigue)=0.2, w2(Confidence)=0.1")
