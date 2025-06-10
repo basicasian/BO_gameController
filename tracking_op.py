@@ -298,7 +298,7 @@ def run_tracking_optimization(pair_mode=False, similar_comparison=False, physica
             'performance_scores': performance_scores,
             'avg_accuracy': np.mean(accuracy_scores),
             'avg_time': np.mean(time_scores),
-            'avg_performance': np.mean(performance_scores[10:])  # 与tracking_objective一致
+            'avg_performance': np.mean(performance_scores[10:])
         }
 
     best_params = study.best_params
