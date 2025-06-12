@@ -50,7 +50,6 @@ def get_user_preference(trial1, trial2, trial_history, task_type=TaskType.AIMING
                 "friction": current_params['friction'],
                 "speed_factor": current_params['speed_factor'],
             }
-            # 使用传入的 task_type 参数而不是硬编码的 TaskType.AIMING
             switcher.run_task(task_type, params)
 
             pygame.init()
