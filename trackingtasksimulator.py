@@ -1,3 +1,26 @@
+"""
+trackingtasksimulator.py
+
+NOTE: Not used in the main process
+
+Runs a series of joystick aiming or tracking tasks and evaluates user performance.
+
+This script:
+- Uses TaskSwitcher to run multiple aiming or tracking tasks with fixed parameters.
+- Computes error, moving time, and jitter for each task using the objective module.
+- Calculates a performance score for each trial and records the results.
+- Saves performance scores (excluding the first 10) to a timestamped results file.
+- Plots performance scores across all trials for visual analysis.
+
+Modules used:
+- task_switcher: For running and managing task trials.
+- objective: For error calculation and performance modeling.
+- matplotlib: For plotting performance scores.
+- time: For timestamping result files.
+
+Run this script directly to execute a batch of aiming or tracking tasks and analyze performance.
+"""
+
 from task_switcher import TaskSwitcher, TaskType
 import objective as ob
 from objective import PerformanceModel

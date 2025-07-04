@@ -1,9 +1,9 @@
 """
 objective.py
 
-- Objectives are all saved in the objective.py file, where you can see exactly how the performance
+Objectives are all saved in the objective.py file, where you can see exactly how the performance
 and preference parameters are defined and calculated.
-- Here performance and preference use two different classes and GPs, allowing you to use either one separately.
+Here performance and preference use two different classes and GPs, allowing you to use either one separately.
 
 Main components:
 - PerformanceModel: Computes accuracy, speed, and overall performance metrics.

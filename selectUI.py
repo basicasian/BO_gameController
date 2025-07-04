@@ -1,3 +1,24 @@
+"""
+selectUI.py
+
+This module provides a user interface for selecting preferences between two joystick control parameter trials.
+It uses Pygame to display trial information and allows users to select, confirm, or retry trials using a joystick.
+
+Key characteristics:
+- Single-criterion selection: Lets the user select which of two trials is better, using a single overall preference.
+- UI: The user moves left/right to select a trial and confirms the choice.
+- Input: Only supports joystick input.
+- Output: Returns the selected trial index as a string ("1" or "2").
+- For simple, single-criterion selection.
+
+Main components:
+- get_user_preference: Displays two trials and records user selection or trial retry.
+- create_mock_trial_history: Generates example trial parameter sets for testing.
+- Main block: Initializes Pygame, checks for joystick, and runs a sample preference selection.
+
+Dependencies: pygame, time, task_switcher.
+"""
+
 import pygame
 import time
 from task_switcher import TaskSwitcher, TaskType

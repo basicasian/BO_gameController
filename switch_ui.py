@@ -1,3 +1,23 @@
+"""
+switch_ui.py
+
+NOTE: Not used in the main process
+
+Provides a fullscreen graphical prompt using pygame to instruct the user to physically switch joystick parameters
+(keycap type, rocker length, cap size) before continuing an experiment.
+
+This script:
+- Displays the required physical parameters and waits for the user to confirm the change by pressing the Y button on a connected game controller.
+- Uses pygame for rendering the interface and handling joystick input.
+- Can be run directly to test the prompt with sample parameter sets.
+
+Modules used:
+- pygame: For graphical display and joystick input.
+- time: For timing control.
+
+Run this script directly to test the switch prompt interface.
+"""
+
 import pygame
 import time
 

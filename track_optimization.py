@@ -1,3 +1,29 @@
+"""
+track_optimization.py
+
+NOTE: Not used in the main process
+
+Performs Bayesian optimization of joystick tracking task parameters (speed_factor, friction) using Optuna.
+
+This script:
+- Defines an objective function (`tracking_objective`) that runs a series of joystick tracking tasks for each parameter set,
+computes performance scores, and applies early stopping if performance is poor.
+- Uses Optuna to search for optimal parameter values that maximize the adjusted performance score.
+- Reports the best parameters and score after optimization.
+- Optionally saves all trial results and the best parameters to a timestamped results file.
+
+Modules used:
+- optuna: For Bayesian optimization.
+- pyglet: For window management in tracking tasks.
+- pygame: For joystick input.
+- numpy: For numerical operations.
+- objective: For performance modeling and error calculation.
+- simple_tracking_task: For running the tracking task.
+- time: For timestamping result files.
+
+Run this script directly to start the tracking parameter optimization process.
+"""
+
 import optuna
 import pyglet
 from objective import PerformanceModel, error_calc

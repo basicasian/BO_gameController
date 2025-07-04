@@ -1,3 +1,26 @@
+"""
+main.py
+
+NOTE: Not used in the main process
+
+Entry point for running a human-in-the-loop Bayesian optimization process for joystick parameters using Optuna.
+
+This script:
+    - Defines an objective function (`human_in_the_loop_objective`) that interactively collects user input (error, moving time, jitter, and optional rankings) for each trial of joystick parameters.
+    - Runs a Bayesian optimization loop (`run_bayesian_optimization`) to search for the best parameter set, prompting the user for feedback at each trial.
+    - Displays the best found parameters and score after optimization.
+    - Optionally saves all trial results and the best parameters to a timestamped results file.
+
+Modules used:
+    - optuna: For Bayesian optimization.
+    - sklearn.gaussian_process: For Gaussian process regression (kernel imported but not directly used).
+    - numpy: For numerical operations.
+    - objective: For computing the joint score from user input and parameters.
+    - time: For timestamping result files.
+
+Run this script directly to start the optimization process.
+"""
+
 import optuna
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import Matern

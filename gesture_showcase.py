@@ -1,3 +1,23 @@
+"""
+gesture_showcase.py
+
+NOTE: Not used for now, can be used for future use.
+
+This module displays a fullscreen image of a gesture for user selection or demonstration.
+It uses Pygame to render a gesture image (from the 'pic' directory) and waits for the user to press any key to continue.
+
+Key characteristics:
+- Fullscreen display: Shows a scaled gesture image centered on the screen.
+- Simple interaction: Waits for any key press to proceed.
+- Intended for use in experiments or demos where users need to view and select gestures.
+
+Main components:
+- show_gesture: Loads and displays the gesture image, handles user input to continue.
+- main: Entry point for running the gesture showcase with a specified image index.
+
+Dependencies: pygame, sys, os, time.
+"""
+
 import pygame
 import sys
 import os

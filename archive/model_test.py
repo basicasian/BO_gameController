@@ -1,7 +1,8 @@
 """
 model_test.py
 
-Not used anymore, can be deleted.
+NOTE: Not used anymore, can be deleted.
+
 This script is used for testing reinforcement learning models in a tracking environment.
 It loads a trained PPO model, runs it in the `TrackingEnv` environment, and visualizes the agent's performance.
 The script uses Pyglet for rendering and collects reward statistics for evaluation.

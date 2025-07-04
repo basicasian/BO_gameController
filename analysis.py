@@ -1,7 +1,8 @@
 """
 analysis.py
 
-Not used in the main process
+NOTE: Not used in the main process
+
 This script analyzes and visualizes performance results from experiment trials.
 It loads result files, computes basic statistics, and generates violin plots to compare trial outcomes.
 The script is intended for post-experiment data analysis and visualization.

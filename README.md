@@ -1,7 +1,7 @@
 ## Quick start: 
 - run tracking_op.py : Visual parameters optimization
 - objective.py : Objective functions
-- path_tracking.py / simple_tracking_task.py / simple_aiming_task.py : task environments
+- simple_path_tracking_task.py / simple_tracking_task.py / simple_aiming_task.py : task environments
 
 ## Instructions
 The code can be divided into four main sections: Environment, Objective, Optimizer, and Other Functions.

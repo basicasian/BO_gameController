@@ -3,7 +3,7 @@ task_switcher.py
 
 To enable better integration of all environments (tracking, aiming, path tracking) in the optimizer,
 TaskSwitcher (task_switcher.py) is introduced, which can be used to quickly switch between task environments
-by passing in parameters.
+by passing parameters.
 
 Main components:
 - TaskType: Enum defining supported task types.

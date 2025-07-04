@@ -1,3 +1,28 @@
+"""
+physical_optimization.py
+
+NOTE: Not used in the main process
+
+Entry point for optimizing physical joystick parameters (keycap type, rocker length, cap size) using Optuna.
+
+This script:
+- Defines a physical parameter search space and an objective function (`physical_objective`)
+  that evaluates each parameter set by running a tracking task optimization.
+- Applies rationality penalties to discourage unreasonable physical parameter combinations.
+- Interacts with the user to confirm physical parameter changes before each trial.
+- Runs a Bayesian optimization loop for a specified number of trials, tracking the best parameters and scores.
+- Optionally saves all trial results and the best parameters to a timestamped results file.
+
+Modules used:
+- optuna: For Bayesian optimization.
+- tracking_op: For running tracking task optimization and evaluating parameter sets.
+- switch_ui: For user prompts regarding physical parameter changes.
+- numpy: For numerical operations.
+- time: For timestamping result files.
+
+Run this script directly to start the physical parameter optimization process.
+"""
+
 import optuna
 import time
 import tracking_op

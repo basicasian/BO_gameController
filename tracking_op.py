@@ -1,11 +1,11 @@
 """
 tracking_op.py
 
-- tracking_op.py is an optimizer that optimizes for virtual parameters and shares the
-same algorithmic logic as the inner optimizer of joint_optimizer.py, mostly used for
-verifying hypotheses and optimizing algorithm performance.
-- Because of its more iterative nature, it already supports the latest environment configurations.
-- On lines 175-180, you can configure the parameters:
+tracking_op.py is an optimizer that optimizes for virtual parameters (currently speed factor and friction)
+and shares the same algorithmic logic as the inner optimizer of joint_optimizer.py,
+mostly used for verifying hypotheses and optimizing algorithm performance.
+Because of its more iterative nature, it already supports the latest environment configurations.
+In run_tracking_optimization(), you can configure the parameters:
     - n_trials: total number of sampling optimizations performed
     - n_initial_samples: in order to prevent local optimization, the number of the initial collection of random data.
     - n_repeats: the number of times the same set of parameters is repeated to validate the collection of data in order to
@@ -43,6 +43,23 @@ else:
     pygame.quit()
 
 def tracking_objective(trial, pref_model, trial_history, task_type=TaskType.TRACKING):
+    """
+    Objective function for Optuna optimization.
+
+    Evaluates a set of parameters (speed_factor, friction) by running the tracking task,
+    computes performance scores, applies early stopping, and integrates user preferences
+    if enabled. Returns the final score for the trial.
+
+    Args:
+        trial (optuna.trial.Trial): The current Optuna trial.
+        pref_model (PreferenceModel): Model for handling user preferences.
+        trial_history (list): List of parameter dicts for all trials so far.
+        task_type (TaskType): The type of task to run (default: TRACKING).
+
+    Returns:
+        float: The objective or combined score for the trial.
+    """
+
     global detailed_scores  
 
     if not joystick:
@@ -186,6 +203,20 @@ def tracking_objective(trial, pref_model, trial_history, task_type=TaskType.TRAC
     return objective_score
 
 def run_verification_trial(params, task_type):
+    """
+    Runs a verification trial for a given set of parameters.
+
+    Executes the tracking task with specified parameters to allow user
+    preference verification between similar trials.
+
+    Args:
+        params (dict): Parameters for the tracking task.
+        task_type (TaskType): The type of task to run.
+
+    Returns:
+        dict: Results from the tracking task.
+    """
+
     switcher = TaskSwitcher()
     params.update({
         "duration": 10,
@@ -194,6 +225,22 @@ def run_verification_trial(params, task_type):
     return switcher.run_task(task_type, params)
 
 def run_tracking_optimization(pair_mode=False, similar_comparison=False, physical_comparison=False, task_type=TaskType.AIMING):
+    """
+    Main entry point for running the tracking parameter optimization workflow.
+
+    Initializes the study, collects initial random samples, runs the optimization loop,
+    manages user preferences, logs detailed results, and optionally saves results to a file.
+
+    Args:
+        pair_mode (bool): Enable pairwise user preference comparisons.
+        similar_comparison (bool): Enable verification of similar preference pairs.
+        physical_comparison (bool): If True, returns best score and parameters directly.
+        task_type (TaskType): The type of task to optimize (default: AIMING).
+
+    Returns:
+        tuple or None: (best_score, best_params) if physical_comparison is True, else None.
+    """
+
     n_trials = 10
     n_initial_samples = 5
     n_repeats = 5

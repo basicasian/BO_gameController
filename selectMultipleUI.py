@@ -1,3 +1,27 @@
+"""
+selectMultipleUI.py
+
+NOTE: Not used for now, can be used for future use.
+
+This module provides a user interface for multi-criteria selection between two joystick control parameter trials.
+It uses Pygame to display trial information and allows users to rate trials on multiple criteria:
+overall preference, fatigue, and confidence, using either a joystick or keyboard.
+
+Key characteristics:
+- Multi-criteria selection:  Lets the user rate the two trials on multiple criteria: overall preference, fatigue, and confidence.
+- UI: The user navigates a grid (rows for criteria, columns for trials), selecting a preference for each criterion.
+- Input: Supports both joystick and keyboard input.
+- Output: Returns the final choice (weighted by criteria) and a dictionary of all preferences.
+- For more detailed, multi-criteria evaluation and selection.
+
+Main components:
+- get_user_preference: Displays two trials, collects multi-criteria preferences, and allows trial retry.
+- create_mock_trial_history: Generates example trial parameter sets for testing.
+- Main block: Initializes Pygame, checks for joystick, and runs a sample multi-criteria preference selection.
+
+Dependencies: pygame, time, task_switcher.
+"""
+
 import pygame
 import time
 from task_switcher import TaskSwitcher, TaskType

@@ -1,14 +1,14 @@
 """
 joint_optimizer.py
 
-- joint_optimizer.py contains sampling optimization for physical parameters and
+joint_optimizer.py contains sampling optimization for physical parameters and
 sampling optimization for virtual parameters.
-- Its core principle is to conduct a round of virtual parameter optimization (Inner) after each physical parameter sampling (Outer),
+Its core principle is to conduct a round of virtual parameter optimization (Inner) after each physical parameter sampling (Outer),
 so that the virtual parameters have a higher sampling rate for the physical parameters,
 which makes the algorithm have better performance.
-- If you want to change different sampling rates and sampling times, please modify the parameters n_trials(Outer) and
+If you want to change different sampling rates and sampling times, please modify the parameters n_trials(Outer) and
 inner_trial(Inner).
-- Since joint_optimizer.py has not been involved in subsequent iterations after April regarding environment selection, etc.,
+Since joint_optimizer.py has not been involved in subsequent iterations after April regarding environment selection, etc.,
 the code needs to be modified to accommodate the new multiple environments (see TaskSwitcher)
 
 Main components:
