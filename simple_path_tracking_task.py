@@ -1,3 +1,29 @@
+"""
+simple_path_tracking_task.py
+
+- All are pygame/pyglet environments: simple_aiming_task.py (Aiming), simple_tracking_task.py
+(Tracking), simple_path_tracking_task.py (Path Tracking).
+- All environments require an external joystick connection to run, otherwise the environments may not run properly.
+- At the end of each environment file, there is test code, and running the code will perform a test (without any logging).
+- After updating the screen scheduling, sometimes running the environments on a single screen (especially from the optimizer)
+will result in a splash screen bug, for which no valid code solution has been found. For this issue, it is recommended to use an external monitor as a display
+window for the game environment.
+
+- All environments randomly change mission parameter settings (e.g., location, path, etc.) on reset.
+- Specifically, there is a Bessel-based external force effect in the tracking task, see near the tenth
+line of simple_tracking_task.py: enable_bezier
+- This effect is off by default, and will be applied when passed a parameter of true.
+- Note, however, that this may make the task difficult to complete, so choose carefully, and also modify the optimizer's pruning parameters
+(see the “Optimizer” section for details).
+
+Main components:
+- PathReticle: Handles rendering and logic for the path, reticle, and target.
+- PathTrackingTask: Manages the path tracking session, input handling, and performance metrics.
+- main: Example entry point to run the path tracking task and print results.
+
+Dependencies: pyglet, pygame, numpy, math, random, time.
+"""
+
 import time
 import numpy as np
 import pyglet

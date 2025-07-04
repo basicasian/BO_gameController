@@ -1,3 +1,20 @@
+"""
+objective.py
+
+- Objectives are all saved in the objective.py file, where you can see exactly how the performance
+and preference parameters are defined and calculated.
+- Here performance and preference use two different classes and GPs, allowing you to use either one separately.
+
+Main components:
+- PerformanceModel: Computes accuracy, speed, and overall performance metrics.
+- GPModel: Gaussian Process regression for modeling performance and preferences.
+- PlackettLuce: Probabilistic model for ranking-based preference data.
+- PreferenceModel: Handles pairwise and ranking-based user preferences.
+- joint_score: Combines performance and preference models for joint optimization.
+
+Dependencies: numpy, scipy, scikit-learn, optuna.
+"""
+
 import numpy as np
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import Matern

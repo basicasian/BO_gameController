@@ -1,3 +1,19 @@
+"""
+analysis.py
+
+Not used in the main process
+This script analyzes and visualizes performance results from experiment trials.
+It loads result files, computes basic statistics, and generates violin plots to compare trial outcomes.
+The script is intended for post-experiment data analysis and visualization.
+
+Main components:
+- load_results: Loads and parses performance scores from result text files.
+- plot_violin: Creates and saves violin plots for visualizing score distributions.
+- main: Aggregates results, generates plots, and prints summary statistics.
+
+Dependencies: os, pandas, seaborn, matplotlib, numpy.
+"""
+
 import os
 import pandas as pd
 import seaborn as sns

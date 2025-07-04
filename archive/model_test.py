@@ -1,3 +1,20 @@
+"""
+model_test.py
+
+Not used anymore, can be deleted.
+This script is used for testing reinforcement learning models in a tracking environment.
+It loads a trained PPO model, runs it in the `TrackingEnv` environment, and visualizes the agent's performance.
+The script uses Pyglet for rendering and collects reward statistics for evaluation.
+
+Main components:
+- Model loading: Loads a PPO model from a specified file.
+- Environment setup: Wraps `TrackingEnv` in a DummyVecEnv for compatibility with Stable Baselines3.
+- Evaluation loop: Steps through the environment using the model's policy, renders each frame, and tracks rewards.
+- Main block: Runs the evaluation and prints the final average score.
+
+Dependencies: stable_baselines3, pyglet, matplotlib, trackRL (TrackingEnv).
+"""
+
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env.dummy_vec_env import DummyVecEnv
 from trackRL import TrackingEnv

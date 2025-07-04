@@ -1,3 +1,26 @@
+"""
+joint_optimizer.py
+
+- joint_optimizer.py contains sampling optimization for physical parameters and
+sampling optimization for virtual parameters.
+- Its core principle is to conduct a round of virtual parameter optimization (Inner) after each physical parameter sampling (Outer),
+so that the virtual parameters have a higher sampling rate for the physical parameters,
+which makes the algorithm have better performance.
+- If you want to change different sampling rates and sampling times, please modify the parameters n_trials(Outer) and
+inner_trial(Inner).
+- Since joint_optimizer.py has not been involved in subsequent iterations after April regarding environment selection, etc.,
+the code needs to be modified to accommodate the new multiple environments (see TaskSwitcher)
+
+Main components:
+- tracking_objective: Objective function for performance and preference parameter optimization.
+- outer_optimization: Two-level optimization for physical and virtual parameters. ## NOTE: is never called?
+- inner_optimization: Optimization for virtual parameters only.
+- run_tracking_optimization: Main entry point for running the optimization workflow.
+- run_verification_trial: Utility for preference verification between trials.
+
+Dependencies: optuna, pygame, numpy, pyglet, custom modules (objective, simple_tracking_task, selectUI, task_switcher).
+"""
+
 import optuna
 import pyglet
 from objective import PerformanceModel, error_calc, PreferenceModel
@@ -172,6 +195,7 @@ def run_verification_trial(params, task_type):
         "sampling_rate": 20,
     })
     return switcher.run_task(task_type, params)
+
 
 def outer_optimization(trial, inner_trial: int = 10, task_type=TaskType.AIMING):
     if not joystick:
@@ -455,4 +479,4 @@ def run_tracking_optimization(pair_mode=False, similar_comparison=False, physica
 
 
 if __name__ == "__main__":
-    run_tracking_optimization(pair_mode=True, similar_comparison=True, task_type=TaskType.TRACKING)
+    run_tracking_optimization(pair_mode=True, similar_comparison=True, task_type=TaskType.AIMING)

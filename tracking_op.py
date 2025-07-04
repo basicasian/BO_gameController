@@ -1,3 +1,24 @@
+"""
+tracking_op.py
+
+- tracking_op.py is an optimizer that optimizes for virtual parameters and shares the
+same algorithmic logic as the inner optimizer of joint_optimizer.py, mostly used for
+verifying hypotheses and optimizing algorithm performance.
+- Because of its more iterative nature, it already supports the latest environment configurations.
+- On lines 175-180, you can configure the parameters:
+    - n_trials: total number of sampling optimizations performed
+    - n_initial_samples: in order to prevent local optimization, the number of the initial collection of random data.
+    - n_repeats: the number of times the same set of parameters is repeated to validate the collection of data in order to
+    prevent chance values from interfering during the initial random sampling.
+
+Main components:
+- tracking_objective: Objective function for performance and preference parameter optimization.
+- run_tracking_optimization: Main entry point for running the optimization workflow.
+- run_verification_trial: Utility for preference verification between trials.
+
+Dependencies: optuna, pygame, numpy, pyglet, custom modules (objective, simple_tracking_task, selectUI, task_switcher).
+"""
+
 import optuna
 import pyglet
 from objective import PerformanceModel, error_calc, PreferenceModel
@@ -21,7 +42,7 @@ else:
     print("No Joystick Detected")
     pygame.quit()
 
-def tracking_objective(trial, pref_model, trial_history, task_type=TaskType.AIMING):
+def tracking_objective(trial, pref_model, trial_history, task_type=TaskType.TRACKING):
     global detailed_scores  
 
     if not joystick:
@@ -353,4 +374,4 @@ def run_tracking_optimization(pair_mode=False, similar_comparison=False, physica
         print(f"Result saved to {filename}")
 
 if __name__ == "__main__":
-    run_tracking_optimization(pair_mode=True, similar_comparison=True, task_type=TaskType.TRACKING)
+    run_tracking_optimization(pair_mode=True, similar_comparison=True, task_type=TaskType.AIMING)
