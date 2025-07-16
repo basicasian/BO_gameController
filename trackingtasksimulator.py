@@ -11,6 +11,7 @@ This script:
 - Calculates a performance score for each trial and records the results.
 - Saves performance scores (excluding the first 10) to a timestamped results file.
 - Plots performance scores across all trials for visual analysis.
+- Data can be used in analysis.py
 
 Modules used:
 - task_switcher: For running and managing task trials.

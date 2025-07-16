@@ -5,7 +5,8 @@ NOTE: Not used for now, can be used for future use.
 
 This module provides a user interface for multi-criteria selection between two joystick control parameter trials.
 It uses Pygame to display trial information and allows users to rate trials on multiple criteria:
-overall preference, fatigue, and confidence, using either a joystick or keyboard.
+overall preference (currently only this implemented), fatigue and confidence (has to be adapted in objective model),
+using either a joystick or keyboard.
 
 Key characteristics:
 - Multi-criteria selection:  Lets the user rate the two trials on multiple criteria: overall preference, fatigue, and confidence.
